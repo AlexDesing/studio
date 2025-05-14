@@ -75,6 +75,10 @@ export default function DailyPlannerPage() {
   };
 
   const openEditTaskDialog = (task: Task) => {
+    if (!currentUser) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Debes iniciar sesión para editar tareas.' });
+      return;
+    }
     setEditingTask(task);
     setTaskTitle(task.title);
     setTaskTime(task.time || '');
@@ -88,7 +92,11 @@ export default function DailyPlannerPage() {
   };
 
   const handleSaveTask = async () => {
-    if (!currentUser || !taskTitle.trim()) {
+    if (!currentUser) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Debes iniciar sesión para guardar tareas.' });
+        return;
+    }
+    if (!taskTitle.trim()) {
         toast({ variant: 'destructive', title: 'Error', description: 'El título de la tarea es obligatorio.' });
         return;
     }
@@ -118,7 +126,10 @@ export default function DailyPlannerPage() {
   };
 
   const handleDeleteTask = async (taskId: string) => {
-    if (!currentUser) return;
+    if (!currentUser) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Debes iniciar sesión para eliminar tareas.' });
+      return;
+    }
     try {
       await deleteTask(currentUser.uid, taskId);
       toast({ title: 'Tarea Eliminada', description: 'La tarea ha sido borrada.' });
@@ -129,7 +140,10 @@ export default function DailyPlannerPage() {
   };
   
   const handleStatusChange = async (taskId: string, newStatus: TaskStatus) => {
-     if (!currentUser) return;
+     if (!currentUser) {
+       toast({ variant: 'destructive', title: 'Error', description: 'Debes iniciar sesión para cambiar el estado de las tareas.' });
+       return;
+     }
      try {
         await updateTask(currentUser.uid, taskId, { status: newStatus });
         // Real-time listener will update the UI
@@ -155,6 +169,15 @@ export default function DailyPlannerPage() {
       default: return '';
     }
   };
+
+  const getColumnActionText = (title: string): string => {
+    const parts = title.split(' ');
+    if (parts.length > 1) {
+      return parts.slice(1).join(' ');
+    }
+    return title;
+  };
+
 
   if (authLoading) {
     return <div className="flex justify-center items-center h-screen"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>;
@@ -227,7 +250,7 @@ export default function DailyPlannerPage() {
                         <SelectTrigger id="taskStatus"><SelectValue placeholder="Seleccionar estado" /></SelectTrigger>
                         <SelectContent>
                         {KANBAN_COLUMNS.map(col => (
-                            <SelectItem key={col.status} value={col.status}>{col.title.split(' ')[1]}</SelectItem>
+                            <SelectItem key={col.status} value={col.status}>{getColumnActionText(col.title)}</SelectItem>
                         ))}
                         </SelectContent>
                     </Select>
@@ -317,7 +340,7 @@ export default function DailyPlannerPage() {
                                         <DropdownMenuSeparator />
                                         {KANBAN_COLUMNS.filter(col => col.status !== task.status).map(newCol => (
                                             <DropdownMenuItem key={newCol.status} onClick={() => handleStatusChange(task.id, newCol.status)}>
-                                                Mover a {newCol.title.split(' ')[1]}
+                                                Mover a {getColumnActionText(newCol.title)}
                                             </DropdownMenuItem>
                                         ))}
                                     </DropdownMenuContent>
