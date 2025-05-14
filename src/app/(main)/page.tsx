@@ -15,6 +15,7 @@ import { PlusCircle, Edit3, Trash2, GripVertical } from 'lucide-react';
 import { MOCK_TASKS } from '@/lib/constants';
 import type { Task } from '@/lib/types';
 import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 export default function DailyPlannerPage() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
