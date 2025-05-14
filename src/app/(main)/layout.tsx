@@ -19,7 +19,7 @@ import AppLogo from '@/components/AppLogo';
 import { NAV_ITEMS } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import { Settings, LogOut } from 'lucide-react';
-import AuthGuard from '@/components/AuthGuard';
+// AuthGuard ya no se importa ni se usa aquí, será manejado por RootLayout
 import { useAuth } from '@/contexts/AuthContext';
 import { logout as firebaseLogout } from '@/lib/firebase/auth';
 import { useToast } from '@/hooks/use-toast';
@@ -54,7 +54,7 @@ export default function MainAppLayout({
 
 
   return (
-    <AuthGuard>
+    // AuthGuard ya no envuelve el contenido aquí
       <div className="flex min-h-screen">
         <Sidebar collapsible="icon">
           <SidebarHeader className="p-4">
@@ -129,6 +129,5 @@ export default function MainAppLayout({
           </div>
         </SidebarInset>
       </div>
-    </AuthGuard>
   );
 }

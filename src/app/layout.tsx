@@ -5,6 +5,7 @@ import './globals.css';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/contexts/AuthContext';
+import AuthGuard from '@/components/AuthGuard'; // Import AuthGuard
 
 const nunito = Nunito({
   subsets: ['latin'],
@@ -25,10 +26,12 @@ export default function RootLayout({
     <html lang="es" suppressHydrationWarning>
       <body className={`${nunito.variable} antialiased font-sans`}>
         <AuthProvider>
-          <SidebarProvider defaultOpen={true}>
-            {children}
-          </SidebarProvider>
-          <Toaster />
+          <AuthGuard> {/* AuthGuard envuelve a los children aquí */}
+            <SidebarProvider defaultOpen={true}>
+              {children}
+            </SidebarProvider>
+            <Toaster />
+          </AuthGuard>
         </AuthProvider>
       </body>
     </html>
