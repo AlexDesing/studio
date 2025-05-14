@@ -1,23 +1,26 @@
+
 'use client';
 
 import type React from 'react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Calendar } from "@/components/ui/calendar";
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox"; // Se mantiene por si se usa en otro lado, pero no en la lista principal.
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { PlusCircle, Edit3, Trash2, GripVertical, MoreHorizontal } from 'lucide-react';
-import { MOCK_TASKS } from '@/lib/constants';
+import { PlusCircle, Edit3, Trash2, MoreHorizontal, Loader2 } from 'lucide-react';
 import type { Task, TaskStatus } from '@/lib/types';
-import { format } from 'date-fns';
+import { format, isEqual, startOfDay } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { useAuth } from '@/contexts/AuthContext';
+import { createTask, updateTask, deleteTask, onTasksSnapshot } from '@/lib/firebase/firestore/tasks';
+import { useToast } from '@/hooks/use-toast';
+import { Timestamp } from 'firebase/firestore';
 
 
 const KANBAN_COLUMNS: { title: string; status: TaskStatus }[] = [
@@ -27,11 +30,13 @@ const KANBAN_COLUMNS: { title: string; status: TaskStatus }[] = [
 ];
 
 export default function DailyPlannerPage() {
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [tasks, setTasks] = useState<Task[]>(MOCK_TASKS); // Initialize with all mock tasks
-  const [isMounted, setIsMounted] = useState(false);
+  const { currentUser, loading: authLoading } = useAuth();
+  const { toast } = useToast();
   
-  // State for new/edit task dialog
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [isLoadingTasks, setIsLoadingTasks] = useState(true);
+  
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [taskTitle, setTaskTitle] = useState('');
@@ -43,10 +48,18 @@ export default function DailyPlannerPage() {
 
 
   useEffect(() => {
-    setIsMounted(true);
-    // Filter tasks for selected date on initial load and when selectedDate changes
-    // This part is handled by filteredTasksForKanban now
-  }, []);
+    if (currentUser && selectedDate && !authLoading) {
+      setIsLoadingTasks(true);
+      const unsubscribe = onTasksSnapshot(currentUser.uid, selectedDate, (fetchedTasks) => {
+        setTasks(fetchedTasks);
+        setIsLoadingTasks(false);
+      });
+      return () => unsubscribe(); // Cleanup subscription on unmount or when deps change
+    } else if (!currentUser && !authLoading) {
+      setTasks([]); // Clear tasks if user logs out
+      setIsLoadingTasks(false);
+    }
+  }, [currentUser, selectedDate, authLoading]);
 
 
   const openAddTaskDialog = () => {
@@ -67,45 +80,69 @@ export default function DailyPlannerPage() {
     setTaskCategory(task.category || '');
     setTaskPriority(task.priority || 'Medium');
     setTaskStatus(task.status);
-    setTaskDate(task.date);
+    // Ensure task.date is a JS Date object for the input
+    const jsDate = task.date instanceof Timestamp ? task.date.toDate() : task.date;
+    setTaskDate(jsDate);
     setIsDialogOpen(true);
   };
 
-  const handleSaveTask = () => {
-    if (!taskTitle.trim()) return;
+  const handleSaveTask = async () => {
+    if (!currentUser || !taskTitle.trim()) {
+        toast({ variant: 'destructive', title: 'Error', description: 'El título de la tarea es obligatorio.' });
+        return;
+    }
 
-    const taskData = {
-      title: taskTitle,
-      time: taskTime,
-      category: taskCategory,
+    const taskDataToSave = {
+      title: taskTitle.trim(),
+      time: taskTime || null, // Store as null if empty
+      category: taskCategory || null,
       priority: taskPriority,
       status: taskStatus,
-      date: taskDate, // Use the date from the dialog state
-      completed: taskStatus === 'HECHO', // Sync completed with status
+      date: taskDate, // This is a JS Date, will be converted by Firestore function
     };
 
-    if (editingTask) {
-      setTasks(prevTasks => prevTasks.map(t => t.id === editingTask.id ? { ...t, ...taskData } : t));
-    } else {
-      const newTask: Task = {
-        id: String(Date.now()),
-        ...taskData,
-      };
-      setTasks(prevTasks => [...prevTasks, newTask]);
+    try {
+      if (editingTask) {
+        await updateTask(currentUser.uid, editingTask.id, taskDataToSave);
+        toast({ title: 'Tarea Actualizada', description: 'Los cambios en tu tarea han sido guardados.' });
+      } else {
+        await createTask(currentUser.uid, taskDataToSave as Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'userId'>);
+        toast({ title: 'Tarea Añadida', description: 'Tu nueva tarea ha sido creada.' });
+      }
+      setIsDialogOpen(false);
+    } catch (error: any) {
+      console.error("Error saving task: ", error);
+      toast({ variant: 'destructive', title: 'Error al Guardar', description: error.message });
     }
-    setIsDialogOpen(false);
   };
 
-  const handleDeleteTask = (taskId: string) => {
-    setTasks(prevTasks => prevTasks.filter(t => t.id !== taskId));
+  const handleDeleteTask = async (taskId: string) => {
+    if (!currentUser) return;
+    try {
+      await deleteTask(currentUser.uid, taskId);
+      toast({ title: 'Tarea Eliminada', description: 'La tarea ha sido borrada.' });
+    } catch (error: any) {
+        console.error("Error deleting task: ", error);
+        toast({ variant: 'destructive', title: 'Error al Eliminar', description: error.message });
+    }
   };
   
-  const handleStatusChange = (taskId: string, newStatus: TaskStatus) => {
-     setTasks(prevTasks => 
-        prevTasks.map(task => 
-            task.id === taskId ? { ...task, status: newStatus, completed: newStatus === 'HECHO' } : task
-        )
-     );
+  const handleStatusChange = async (taskId: string, newStatus: TaskStatus) => {
+     if (!currentUser) return;
+     try {
+        await updateTask(currentUser.uid, taskId, { status: newStatus });
+        // Real-time listener will update the UI
+     } catch (error: any) {
+        console.error("Error updating task status: ", error);
+        toast({ variant: 'destructive', title: 'Error al Cambiar Estado', description: error.message });
+     }
+  };
+  
+  const handleDateSelect = (date: Date | undefined) => {
+    if (date) {
+        setSelectedDate(startOfDay(date)); // Ensure we use the start of the day for consistency
+        setTaskDate(startOfDay(date));
+    }
   };
 
   const getPriorityText = (priority: 'High' | 'Medium' | 'Low' | undefined): string => {
@@ -118,21 +155,28 @@ export default function DailyPlannerPage() {
     }
   };
 
-  if (!isMounted) {
-    return null;
+  if (authLoading) {
+    return <div className="flex justify-center items-center h-screen"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>;
+  }
+  if (!currentUser && !authLoading) {
+     return (
+        <div className="container mx-auto text-center py-20">
+            <h1 className="text-2xl font-semibold">Bienvenida a CasaZen</h1>
+            <p className="text-muted-foreground mb-4">Por favor, inicia sesión para organizar tu día.</p>
+            <Button asChild><Link href="/login">Iniciar Sesión</Link></Button>
+        </div>
+    );
   }
 
-  const filteredTasksForKanban = tasks.filter(task => 
-    selectedDate && format(task.date, 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd')
-  );
-
+  // Tasks are already filtered by onTasksSnapshot based on selectedDate
+  const tasksForSelectedDate = tasks;
 
   return (
     <div className="container mx-auto">
       <header className="mb-8 flex flex-col sm:flex-row justify-between items-center gap-4">
         <div>
             <h1 className="text-3xl font-bold text-foreground">Planificador Diario</h1>
-            <p className="text-muted-foreground">Organiza tu día en estilo Kanban: {selectedDate ? format(selectedDate, 'eeee, MMMM d, yyyy', { locale: es }) : 'Selecciona una fecha'}</p>
+            <p className="text-muted-foreground">Organiza tu día: {selectedDate ? format(selectedDate, 'eeee, d \'de\' MMMM \'de\' yyyy', { locale: es }) : 'Selecciona una fecha'}</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
@@ -152,7 +196,8 @@ export default function DailyPlannerPage() {
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="taskDate">Fecha</Label>
-                      <Input id="taskDate" type="date" value={format(taskDate, 'yyyy-MM-dd')} onChange={(e) => setTaskDate(new Date(e.target.value + 'T00:00:00'))} /> {/* Ensure date is parsed correctly */}
+                      {/* Ensure taskDate is a Date object */}
+                      <Input id="taskDate" type="date" value={format(taskDate instanceof Timestamp ? taskDate.toDate() : taskDate, 'yyyy-MM-dd')} onChange={(e) => setTaskDate(new Date(e.target.value + 'T00:00:00'))} />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="taskTime">Hora (Opcional)</Label>
@@ -197,7 +242,6 @@ export default function DailyPlannerPage() {
       </header>
 
       <div className="flex flex-col lg:flex-row gap-6">
-        {/* Calendar moved to a collapsible section or smaller component if needed, or keep as is */}
         <div className="lg:w-1/4">
             <Card className="shadow-lg sticky top-6">
               <CardHeader><CardTitle>Calendario</CardTitle></CardHeader>
@@ -205,9 +249,10 @@ export default function DailyPlannerPage() {
                 <Calendar
                   mode="single"
                   selected={selectedDate}
-                  onSelect={(date) => {setSelectedDate(date); setTaskDate(date || new Date());}}
+                  onSelect={handleDateSelect}
                   className="rounded-md"
                   locale={es}
+                  disabled={authLoading || isLoadingTasks}
                 />
               </CardContent>
             </Card>
@@ -221,21 +266,29 @@ export default function DailyPlannerPage() {
                   <CardTitle className="text-lg font-semibold">{column.title}</CardTitle>
                 </CardHeader>
                 <CardContent className="p-2">
-                  <ScrollArea className="h-[calc(100vh-18rem)] p-2 min-h-[200px]"> {/* Adjusted height */}
-                    {filteredTasksForKanban.filter(task => task.status === column.status).length > 0 ? (
+                  <ScrollArea className="h-[calc(100vh-20rem)] p-2 min-h-[200px]"> {/* Adjusted height */}
+                    {isLoadingTasks ? (
+                        <div className="flex justify-center items-center h-full"><Loader2 className="h-6 w-6 animate-spin text-primary"/></div>
+                    ) : tasksForSelectedDate.filter(task => task.status === column.status).length > 0 ? (
                       <ul className="space-y-3">
-                        {filteredTasksForKanban
+                        {tasksForSelectedDate
                           .filter(task => task.status === column.status)
-                          .sort((a,b) => (a.time && b.time ? a.time.localeCompare(b.time) : 0))
+                          .sort((a,b) => {
+                            // Sort by time if present, otherwise keep order (e.g., by creation if needed)
+                            if (a.time && b.time) return a.time.localeCompare(b.time);
+                            if (a.time && !b.time) return -1; // Tasks with time come first
+                            if (!a.time && b.time) return 1;  // Tasks with time come first
+                            return 0; // Keep original order for tasks without time
+                          })
                           .map(task => (
                           <li key={task.id} className="p-3 bg-background rounded-lg shadow-sm hover:shadow-md transition-shadow">
                             <div className="flex justify-between items-start">
                                 <div className="flex-1">
-                                    <span className={`text-sm font-medium ${task.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                                    <span className={`text-sm font-medium ${task.status === 'HECHO' ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
                                     {task.title}
                                     </span>
                                     {(task.time || task.category || task.priority) && (
-                                    <div className="text-xs text-muted-foreground flex items-center flex-wrap space-x-2 mt-1">
+                                    <div className="text-xs text-muted-foreground flex items-center flex-wrap gap-x-2 mt-1">
                                         {task.time && <span>{task.time}</span>}
                                         {task.category && <span className="bg-secondary/50 px-1.5 py-0.5 rounded-full">{task.category}</span>}
                                         {task.priority && <span className={cn(
@@ -257,7 +310,7 @@ export default function DailyPlannerPage() {
                                         <DropdownMenuItem onClick={() => openEditTaskDialog(task)}>
                                             <Edit3 className="mr-2 h-4 w-4" /> Editar
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => handleDeleteTask(task.id)} className="text-destructive">
+                                        <DropdownMenuItem onClick={() => handleDeleteTask(task.id)} className="text-destructive hover:!bg-destructive/10 focus:!bg-destructive/10">
                                             <Trash2 className="mr-2 h-4 w-4" /> Eliminar
                                         </DropdownMenuItem>
                                         <DropdownMenuSeparator />

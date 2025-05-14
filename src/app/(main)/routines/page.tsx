@@ -1,25 +1,162 @@
+
 'use client';
 
 import type React from 'react';
 import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, ListChecks, Zap, Smile, Coffee } from 'lucide-react';
-import { MOCK_ROUTINES } from '@/lib/constants';
+import { CheckCircle, ListChecks, Zap, Smile, Coffee, PlusCircle, Edit3, Trash2, Loader2 } from 'lucide-react';
+import { MOCK_ROUTINES } from '@/lib/constants'; // Keep for initial structure if needed, or remove if fully dynamic
 import type { Routine } from '@/lib/types';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { useAuth } from '@/contexts/AuthContext';
+import { createRoutine, updateRoutine, deleteRoutine, onRoutinesSnapshot, getLucideIconByName } from '@/lib/firebase/firestore/routines';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import * as LucideIcons from 'lucide-react'; // Import all for dynamic icon selection
+
+
+const iconOptions = Object.keys(LucideIcons).filter(key => key !== 'createLucideIcon' && key !== 'icons' && typeof LucideIcons[key as keyof typeof LucideIcons] === 'object');
+
 
 export default function RoutinesPage() {
-  const [routines, setRoutines] = useState<Routine[]>(MOCK_ROUTINES);
-  const [isMounted, setIsMounted] = useState(false);
+  const { currentUser, loading: authLoading } = useAuth();
+  const { toast } = useToast();
+  const [routines, setRoutines] = useState<Routine[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingRoutine, setEditingRoutine] = useState<Routine | null>(null);
+  const [routineTitle, setRoutineTitle] = useState('');
+  const [routineDescription, setRoutineDescription] = useState('');
+  const [routineCategory, setRoutineCategory] = useState('');
+  const [routineSteps, setRoutineSteps] = useState<string[]>(['']);
+  const [routineIconName, setRoutineIconName] = useState<keyof typeof LucideIcons>('ListChecks');
+
 
   useEffect(() => {
-    setIsMounted(true);
-  }, []);
+    if (currentUser && !authLoading) {
+      setIsLoading(true);
+      const unsubscribe = onRoutinesSnapshot(currentUser.uid, (fetchedRoutines) => {
+        setRoutines(fetchedRoutines);
+        setIsLoading(false);
+      });
+      return () => unsubscribe();
+    } else if (!currentUser && !authLoading) {
+        setRoutines([]);
+        setIsLoading(false);
+    }
+  }, [currentUser, authLoading]);
 
-  if (!isMounted) {
-    return null; // Avoid hydration mismatch
+  const openAddDialog = () => {
+    setEditingRoutine(null);
+    setRoutineTitle('');
+    setRoutineDescription('');
+    setRoutineCategory('');
+    setRoutineSteps(['']);
+    setRoutineIconName('ListChecks');
+    setIsDialogOpen(true);
+  };
+
+  const openEditDialog = (routine: Routine) => {
+    setEditingRoutine(routine);
+    setRoutineTitle(routine.title);
+    setRoutineDescription(routine.description);
+    setRoutineCategory(routine.category);
+    setRoutineSteps(routine.steps.length > 0 ? routine.steps : ['']);
+    setRoutineIconName(routine.iconName || 'ListChecks');
+    setIsDialogOpen(true);
+  };
+
+  const handleStepChange = (index: number, value: string) => {
+    const newSteps = [...routineSteps];
+    newSteps[index] = value;
+    setRoutineSteps(newSteps);
+  };
+
+  const addStepField = () => {
+    setRoutineSteps([...routineSteps, '']);
+  };
+
+  const removeStepField = (index: number) => {
+    if (routineSteps.length > 1) {
+      const newSteps = routineSteps.filter((_, i) => i !== index);
+      setRoutineSteps(newSteps);
+    }
+  };
+  
+  const handleSaveRoutine = async () => {
+    if (!currentUser || !routineTitle.trim()) {
+        toast({ variant: 'destructive', title: 'Error', description: 'El título de la rutina es obligatorio.'});
+        return;
+    }
+    const finalSteps = routineSteps.map(s => s.trim()).filter(s => s !== '');
+    if (finalSteps.length === 0) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Debe haber al menos un paso en la rutina.'});
+        return;
+    }
+
+    const routineData = {
+      title: routineTitle.trim(),
+      description: routineDescription.trim(),
+      category: routineCategory.trim(),
+      steps: finalSteps,
+      iconName: routineIconName,
+    };
+
+    try {
+      if (editingRoutine) {
+        await updateRoutine(currentUser.uid, editingRoutine.id, routineData);
+        toast({ title: 'Rutina Actualizada'});
+      } else {
+        await createRoutine(currentUser.uid, routineData as Omit<Routine, 'id' | 'createdAt' | 'updatedAt' | 'userId'>);
+        toast({ title: 'Rutina Creada'});
+      }
+      setIsDialogOpen(false);
+    } catch (error: any) {
+      console.error("Error saving routine: ", error);
+      toast({ variant: 'destructive', title: 'Error al Guardar', description: error.message });
+    }
+  };
+
+  const handleDeleteRoutine = async (routineId: string) => {
+    if (!currentUser) return;
+    if (confirm('¿Estás segura de que quieres eliminar esta rutina?')) {
+        try {
+            await deleteRoutine(currentUser.uid, routineId);
+            toast({ title: 'Rutina Eliminada'});
+        } catch (error: any) {
+            console.error("Error deleting routine: ", error);
+            toast({ variant: 'destructive', title: 'Error al Eliminar', description: error.message });
+        }
+    }
+  };
+  
+  const RenderIcon = ({ name }: { name: keyof typeof LucideIcons | undefined }) => {
+    if (!name) return <ListChecks className="h-8 w-8 text-primary" />;
+    const IconComponent = LucideIcons[name] as React.ElementType;
+    if (!IconComponent) return <ListChecks className="h-8 w-8 text-primary" />; // Fallback
+    return <IconComponent className="h-8 w-8 text-primary" />;
+  };
+
+
+  if (authLoading || isLoading) {
+    return <div className="flex justify-center items-center h-screen"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>;
   }
+  
+  if (!currentUser && !authLoading) {
+     return (
+        <div className="container mx-auto text-center py-20">
+            <h1 className="text-2xl font-semibold">Mis Rutinas Zen</h1>
+            <p className="text-muted-foreground mb-4">Inicia sesión para crear y gestionar tus rutinas personalizadas.</p>
+            <Button asChild><Link href="/login">Iniciar Sesión</Link></Button>
+        </div>
+    );
+  }
+
 
   return (
     <div className="container mx-auto max-w-3xl">
@@ -30,6 +167,12 @@ export default function RoutinesPage() {
         <h1 className="text-4xl font-bold text-foreground">Mis Rutinas Zen</h1>
         <p className="text-lg text-muted-foreground mt-2">Secuencias personalizadas para potenciar tu día con intención y calma.</p>
       </header>
+      
+      <div className="text-center mb-8">
+        <Button size="lg" onClick={openAddDialog}>
+            <PlusCircle className="mr-2 h-5 w-5" /> Crear Nueva Rutina
+        </Button>
+      </div>
 
       {routines.length > 0 ? (
         <Accordion type="single" collapsible className="w-full space-y-6">
@@ -37,16 +180,24 @@ export default function RoutinesPage() {
             <AccordionItem value={`item-${index}`} key={routine.id} className="bg-card border border-primary/20 rounded-lg shadow-lg overflow-hidden">
               <AccordionTrigger className="p-6 hover:no-underline">
                 <div className="flex items-center space-x-4 w-full">
-                  <routine.icon className="h-8 w-8 text-primary" />
-                  <div>
-                    <CardTitle className="text-xl text-left">{routine.title}</CardTitle>
-                    <CardDescription className="text-sm text-left text-muted-foreground">{routine.description}</CardDescription>
+                  <RenderIcon name={routine.iconName} />
+                  <div className="flex-grow text-left">
+                    <CardTitle className="text-xl">{routine.title}</CardTitle>
+                    <CardDescription className="text-sm text-muted-foreground">{routine.description}</CardDescription>
+                  </div>
+                  <div className="flex space-x-2">
+                     <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); openEditDialog(routine);}} className="hover:bg-accent/50">
+                        <Edit3 className="h-5 w-5 text-blue-500" />
+                     </Button>
+                     <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleDeleteRoutine(routine.id);}} className="hover:bg-destructive/10">
+                        <Trash2 className="h-5 w-5 text-destructive" />
+                     </Button>
                   </div>
                 </div>
               </AccordionTrigger>
               <AccordionContent className="px-6 pb-6 pt-0">
-                <p className="text-sm text-muted-foreground mb-4">Categoría: {routine.category}</p>
-                <ul className="space-y-3">
+                <p className="text-sm text-muted-foreground mb-1">Categoría: {routine.category || "General"}</p>
+                <ul className="space-y-3 mt-4">
                   {routine.steps.map((step, stepIndex) => (
                     <li key={stepIndex} className="flex items-start space-x-3">
                       <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 shrink-0" />
@@ -55,10 +206,7 @@ export default function RoutinesPage() {
                   ))}
                 </ul>
                 <Button className="mt-6 w-full sm:w-auto" variant="default">
-                  Iniciar Rutina
-                </Button>
-                 <Button className="mt-6 ml-2 w-full sm:w-auto" variant="outline">
-                  Editar Rutina
+                  Iniciar Rutina (Próximamente)
                 </Button>
               </AccordionContent>
             </AccordionItem>
@@ -69,16 +217,66 @@ export default function RoutinesPage() {
           <ListChecks className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
           <CardTitle className="text-2xl mb-2">Aún no hay rutinas definidas</CardTitle>
           <CardDescription className="mb-6">Crea tu primera rutina para empezar a organizar tus días con propósito.</CardDescription>
-          <Button size="lg">
-            <Zap className="mr-2 h-5 w-5" /> Crear Nueva Rutina
-          </Button>
         </Card>
       )}
       <div className="mt-12 text-center">
         <Button variant="link" className="text-primary">
-            Explorar plantillas de rutinas
+            Explorar plantillas de rutinas (Próximamente)
         </Button>
       </div>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogContent className="sm:max-w-[525px]">
+              <DialogHeader>
+                <DialogTitle>{editingRoutine ? 'Editar Rutina' : 'Crear Nueva Rutina'}</DialogTitle>
+              </DialogHeader>
+              <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto pr-2">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="routine-title" className="text-right">Título</Label>
+                  <Input id="routine-title" value={routineTitle} onChange={(e) => setRoutineTitle(e.target.value)} className="col-span-3" placeholder="Ej: Mañana Energizante"/>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="routine-desc" className="text-right">Descripción</Label>
+                  <Textarea id="routine-desc" value={routineDescription} onChange={(e) => setRoutineDescription(e.target.value)} className="col-span-3" placeholder="Pequeña descripción de la rutina"/>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="routine-category" className="text-right">Categoría</Label>
+                  <Input id="routine-category" value={routineCategory} onChange={(e) => setRoutineCategory(e.target.value)} className="col-span-3" placeholder="Ej: Bienestar, Productividad"/>
+                </div>
+                 <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="routine-icon" className="text-right">Ícono</Label>
+                    <select 
+                        id="routine-icon"
+                        value={routineIconName}
+                        onChange={(e) => setRoutineIconName(e.target.value as keyof typeof LucideIcons)}
+                        className="col-span-3 p-2 border rounded-md bg-input"
+                    >
+                        {iconOptions.map(iconKey => (
+                            <option key={iconKey} value={iconKey}>{iconKey}</option>
+                        ))}
+                    </select>
+                </div>
+                <Label className="font-semibold">Pasos de la Rutina:</Label>
+                {routineSteps.map((step, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                        <Input value={step} onChange={(e) => handleStepChange(index, e.target.value)} placeholder={`Paso ${index + 1}`} className="flex-grow"/>
+                        {routineSteps.length > 1 && (
+                            <Button variant="ghost" size="icon" onClick={() => removeStepField(index)} className="text-destructive">
+                                <Trash2 className="h-4 w-4"/>
+                            </Button>
+                        )}
+                    </div>
+                ))}
+                <Button variant="outline" onClick={addStepField} size="sm" className="mt-2">Añadir Paso</Button>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancelar</Button>
+                <Button onClick={handleSaveRoutine}>{editingRoutine ? 'Guardar Cambios' : 'Crear Rutina'}</Button>
+              </DialogFooter>
+            </DialogContent>
+        </Dialog>
+
     </div>
   );
 }
+

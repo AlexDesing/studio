@@ -1,12 +1,14 @@
+
 import type { Metadata } from 'next';
-import { Nunito } from 'next/font/google'; // Changed from Inter to Nunito
+import { Nunito } from 'next/font/google';
 import './globals.css';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { Toaster } from '@/components/ui/toaster';
+import { AuthProvider } from '@/contexts/AuthContext';
 
-const nunito = Nunito({ // Changed from Inter to Nunito
+const nunito = Nunito({
   subsets: ['latin'],
-  variable: '--font-nunito', // Changed from --font-inter
+  variable: '--font-nunito',
 });
 
 export const metadata: Metadata = {
@@ -21,11 +23,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <body className={`${nunito.variable} antialiased font-sans`}> {/* Changed from inter.variable */}
-        <SidebarProvider defaultOpen={true}>
-          {children}
-        </SidebarProvider>
-        <Toaster />
+      <body className={`${nunito.variable} antialiased font-sans`}>
+        <AuthProvider>
+          <SidebarProvider defaultOpen={true}>
+            {children}
+          </SidebarProvider>
+          <Toaster />
+        </AuthProvider>
       </body>
     </html>
   );

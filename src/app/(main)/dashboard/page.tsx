@@ -1,15 +1,21 @@
+
 'use client';
 
 import type React from 'react';
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import Image from 'next/image';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Award, BarChart3, CheckCircle, ClipboardList, Lightbulb, Smile, Sparkles, Zap } from 'lucide-react';
-import { MOCK_TASKS, MOCK_BADGES } from '@/lib/constants';
-import type { Badge, Task } from '@/lib/types';
-import { getDailyRecommendations, type DailyRecommendationInput } from '@/ai/flows/daily-recommendation-flow'; // Assuming this flow is created
+import { Award, CheckCircle, ClipboardList, Lightbulb, Smile, Sparkles, Zap, Loader2 } from 'lucide-react';
+import type { Badge, Task, Routine } from '@/lib/types';
+import { getDailyRecommendations, type DailyRecommendationInput } from '@/ai/flows/daily-recommendation-flow';
+import { useAuth } from '@/contexts/AuthContext';
+import { onTasksSnapshot } from '@/lib/firebase/firestore/tasks';
+import { onRoutinesSnapshot } from '@/lib/firebase/firestore/routines'; // Assuming routines can be "completed"
+import { MOCK_BADGES } from '@/lib/constants'; // Keep for now, will make dynamic later
+
 
 interface Recommendation {
     title: string;
@@ -18,28 +24,64 @@ interface Recommendation {
 }
 
 export default function DashboardPage() {
-  const [tasks, setTasks] = useState<Task[]>(MOCK_TASKS);
-  const [badges, setBadges] = useState<Badge[]>(MOCK_BADGES);
+  const { currentUser, loading: authLoading } = useAuth();
+  
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [routines, setRoutines] = useState<Routine[]>([]); // If tracking routine completion
+  const [badges, setBadges] = useState<Badge[]>(MOCK_BADGES); // Will be dynamic later
+  
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [isLoadingRecs, setIsLoadingRecs] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(true);
+
 
   useEffect(() => {
-    setIsMounted(true);
-    fetchRecommendations();
-  }, []);
+    if (currentUser && !authLoading) {
+      setIsLoadingData(true);
+      const today = new Date();
+      
+      const unsubscribeTasks = onTasksSnapshot(currentUser.uid, today, (fetchedTasks) => {
+        setTasks(fetchedTasks);
+        // Consider setting isLoadingData to false after all data streams are initialized
+      });
+      
+      // Example for routines, if you track completion or want to display them
+      // const unsubscribeRoutines = onRoutinesSnapshot(currentUser.uid, (fetchedRoutines) => {
+      //   setRoutines(fetchedRoutines);
+      // });
+
+      fetchRecommendations(); // Fetch AI recommendations
+
+      // Combine loading states or use a counter
+      Promise.all([
+        // Add promises for other data fetches if needed
+      ]).finally(() => setIsLoadingData(false));
+
+
+      return () => {
+        unsubscribeTasks();
+        // unsubscribeRoutines();
+      };
+    } else if (!currentUser && !authLoading) {
+        setTasks([]);
+        setRoutines([]);
+        setRecommendations([]);
+        setIsLoadingData(false);
+    }
+  }, [currentUser, authLoading]);
   
   const fetchRecommendations = async () => {
+    if (!currentUser) return;
     setIsLoadingRecs(true);
     try {
-      const input: DailyRecommendationInput = { userContext: "Busco mejorar mi bienestar general y enfoque diario." };
+      // Personalize context if possible, e.g., from user preferences or recent activity
+      const input: DailyRecommendationInput = { userContext: `Usuario ${currentUser.displayName || 'CasaZen'} buscando mejorar bienestar y enfoque.` };
       const result = await getDailyRecommendations(input);
       if (result.recommendations) {
         setRecommendations(result.recommendations);
       }
     } catch (error) {
       console.error("Error fetching recommendations:", error);
-      // Set some default/fallback recommendations or show an error message
       setRecommendations([
         { title: "Respira Profundo", description: "Toma 5 minutos para respiraciones conscientes y centrarte.", category: "Bienestar"},
         { title: "Pequeña Meta Diaria", description: "Define una tarea pequeña y alcanzable para hoy.", category: "Productividad"},
@@ -49,17 +91,27 @@ export default function DashboardPage() {
     }
   };
 
-  if (!isMounted) {
-    return null; // Avoid hydration mismatch
+  if (authLoading || isLoadingData) {
+    return <div className="flex justify-center items-center h-screen"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>;
+  }
+  if (!currentUser && !authLoading) {
+     return (
+        <div className="container mx-auto text-center py-20">
+            <h1 className="text-2xl font-semibold">Tu Dashboard Personal</h1>
+            <p className="text-muted-foreground mb-4">Inicia sesión para ver tu progreso y obtener recomendaciones personalizadas.</p>
+            <Button asChild><Link href="/login">Iniciar Sesión</Link></Button>
+        </div>
+    );
   }
 
-  const completedTasks = tasks.filter(task => task.status === 'HECHO').length;
-  const totalTasks = tasks.length;
-  const taskProgress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
-  // Mock data for other charts/metrics
-  const weeklyHabitProgress = 75; // Percentage
-  const wellbeingScore = 8; // Out of 10
+  const completedTasksToday = tasks.filter(task => task.status === 'HECHO').length;
+  const totalTasksToday = tasks.length;
+  const taskProgress = totalTasksToday > 0 ? (completedTasksToday / totalTasksToday) * 100 : 0;
+
+  // Mock data for other charts/metrics - replace with actual data logic
+  const weeklyHabitProgress = 0; // Placeholder - needs habit tracking implementation
+  const wellbeingScore = 0; // Placeholder - needs mood tracking implementation
 
   return (
     <div className="container mx-auto">
@@ -72,17 +124,18 @@ export default function DashboardPage() {
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* Task Progress */}
+        {/* Task Progress Today */}
         <Card className="lg:col-span-1 shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-lg font-medium">Progreso de Tareas Semanal</CardTitle>
+            <CardTitle className="text-lg font-medium">Progreso de Hoy</CardTitle>
             <ClipboardList className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-foreground">{completedTasks}/{totalTasks} tareas</div>
+            <div className="text-3xl font-bold text-foreground">{completedTasksToday}/{totalTasksToday} tareas</div>
             <Progress value={taskProgress} className="mt-2 h-3" />
             <p className="text-xs text-muted-foreground mt-1">
-              {taskProgress > 70 ? "¡Excelente progreso esta semana!" : "Sigue esforzándote, ¡vas por buen camino!"}
+              {taskProgress === 100 && totalTasksToday > 0 ? "¡Todas las tareas de hoy completadas!" : 
+               taskProgress > 70 ? "¡Excelente progreso hoy!" : "Sigue esforzándote, ¡vas por buen camino!"}
             </p>
           </CardContent>
         </Card>
@@ -95,11 +148,10 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-foreground">{weeklyHabitProgress}% completado</div>
-            {/* Placeholder for chart */}
             <div className="mt-2 h-[60px] bg-secondary/30 rounded-md flex items-center justify-center">
                 <Image src="https://placehold.co/200x60.png" width={200} height={60} alt="Gráfico de hábitos" data-ai-hint="bar chart habit tracker" className="opacity-50"/>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">Meta semanal de hábitos.</p>
+            <p className="text-xs text-muted-foreground mt-1">Meta semanal de hábitos (En desarrollo).</p>
           </CardContent>
         </Card>
 
@@ -111,11 +163,10 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-foreground">{wellbeingScore}/10</div>
-             {/* Placeholder for chart */}
             <div className="mt-2 h-[60px] bg-accent/20 rounded-md flex items-center justify-center">
                  <Image src="https://placehold.co/200x60.png" width={200} height={60} alt="Gráfico de bienestar" data-ai-hint="line graph mood trend" className="opacity-50"/>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">Basado en tu estado de ánimo reciente.</p>
+            <p className="text-xs text-muted-foreground mt-1">Basado en tu estado de ánimo (En desarrollo).</p>
           </CardContent>
         </Card>
 
@@ -162,7 +213,7 @@ export default function DashboardPage() {
                 <Award className="h-7 w-7 text-yellow-500" />
                 <CardTitle className="text-xl">Mis Logros y Reconocimientos</CardTitle>
             </div>
-            <CardDescription>¡Celebra tus avances y dedicación!</CardDescription>
+            <CardDescription>¡Celebra tus avances y dedicación! (En desarrollo)</CardDescription>
           </CardHeader>
           <CardContent className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {badges.map(badge => (

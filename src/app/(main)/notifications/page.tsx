@@ -1,3 +1,4 @@
+
 'use client';
 
 import type React from 'react';
@@ -6,13 +7,16 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter }
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Bell, Trash2, Sparkles, Coffee, Lightbulb } from 'lucide-react'; // Added Lightbulb
-import { Separator } from '@/components/ui/separator';
+import { Bell, Trash2, Sparkles, Coffee, Lightbulb, Loader2, Save } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { MOCK_TASKS } from '@/lib/constants'; 
+import { useAuth } from '@/contexts/AuthContext';
+import { updateUserPreferences, getUserProfile } from '@/lib/firebase/firestore/users';
+import type { UserProfileData } from '@/lib/firebase/firestore/users';
+
 
 interface NotificationSetting {
-  id: string;
+  id: keyof NonNullable<NonNullable<UserProfileData['preferences']>['notifications']>; // Use keys from type
   label: string;
   enabled: boolean;
 }
@@ -23,19 +27,20 @@ interface NotificationItem {
   message: string;
   timestamp: Date;
   read: boolean;
-  icon?: React.ElementType; // Optional icon
+  icon?: React.ElementType;
   category: 'Recordatorio' | 'Motivación' | 'Autocuidado' | 'Consejo';
 }
 
-const initialSettings: NotificationSetting[] = [
-  { id: 'taskReminders', label: 'Recordatorios de Tareas', enabled: true },
-  { id: 'dailyTips', label: 'Consejos Diarios', enabled: true },
-  { id: 'affirmationReady', label: 'Afirmación Lista', enabled: true },
-  { id: 'motivationalPhrases', label: 'Frases Motivacionales', enabled: true },
-  { id: 'selfCareReminders', label: 'Recordatorios de Autocuidado', enabled: true },
-];
+const initialSettingLabels: Record<NotificationSetting['id'], string> = {
+  taskReminders: 'Recordatorios de Tareas',
+  dailyTips: 'Consejos Diarios',
+  affirmationReady: 'Afirmación Lista',
+  motivationalPhrases: 'Frases Motivacionales',
+  selfCareReminders: 'Recordatorios de Autocuidado',
+};
 
-// Enhanced mock notifications
+
+// Enhanced mock notifications (client-side only for now)
 const initialNotifications: NotificationItem[] = [
   { 
     id: '1', 
@@ -55,57 +60,66 @@ const initialNotifications: NotificationItem[] = [
     icon: Sparkles,
     category: 'Motivación'
   },
-  { 
-    id: '3', 
-    title: '💖 Recordatorio de Autocuidado', 
-    message: '¿Tomaste un momento para respirar hoy? Una pausa de 5 minutos puede hacer maravillas.', 
-    timestamp: new Date(Date.now() - 10800000), 
-    read: false,
-    icon: Coffee,
-    category: 'Autocuidado' 
-  },
-   { 
-    id: '4', 
-    title: '💡 Consejo Zen', 
-    message: 'Organiza un pequeño rincón de tu hogar. Un espacio ordenado, una mente clara.', 
-    timestamp: new Date(Date.now() - 14400000), 
-    read: true,
-    icon: Lightbulb,
-    category: 'Consejo' 
-  },
 ];
 
 
 export default function NotificationsPage() {
-  const [settings, setSettings] = useState<NotificationSetting[]>(initialSettings);
-  const [notifications, setNotifications] = useState<NotificationItem[]>(initialNotifications);
-  const [isMounted, setIsMounted] = useState(false);
+  const { currentUser, loading: authLoading } = useAuth();
   const { toast } = useToast();
 
+  const [settings, setSettings] = useState<NotificationSetting[]>([]);
+  const [notifications, setNotifications] = useState<NotificationItem[]>(initialNotifications); // Keep mock for display
+  const [isLoadingSettings, setIsLoadingSettings] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+
   useEffect(() => {
-    setIsMounted(true);
-  }, []);
+    if (currentUser && !authLoading) {
+      setIsLoadingSettings(true);
+      const currentPrefs = currentUser.preferences?.notifications || {};
+      const loadedSettings = (Object.keys(initialSettingLabels) as Array<NotificationSetting['id']>).map(key => ({
+        id: key,
+        label: initialSettingLabels[key],
+        enabled: currentPrefs[key] !== undefined ? currentPrefs[key] : true, // Default to true if not set
+      }));
+      setSettings(loadedSettings);
+      setIsLoadingSettings(false);
+    } else if (!currentUser && !authLoading) {
+        setSettings([]); // Or default settings if preferred for logged-out view
+        setIsLoadingSettings(false);
+    }
+  }, [currentUser, authLoading]);
 
-  const toggleSetting = (id: string) => {
-    let changedSettingLabel = '';
-    let newEnabledState = false;
 
+  const toggleSetting = (id: NotificationSetting['id']) => {
     setSettings(prev =>
-      prev.map(setting => {
-        if (setting.id === id) {
-          changedSettingLabel = setting.label;
-          newEnabledState = !setting.enabled;
-          return { ...setting, enabled: newEnabledState };
-        }
-        return setting;
-      })
+      prev.map(setting =>
+        setting.id === id ? { ...setting, enabled: !setting.enabled } : setting
+      )
     );
-    
-    if (changedSettingLabel) {
-        toast({
-            title: "Configuración Actualizada",
-            description: `Notificaciones de ${changedSettingLabel} ${newEnabledState ? "activadas" : "desactivadas"}.`
+  };
+
+  const handleSaveSettings = async () => {
+    if (!currentUser) {
+        toast({variant: "destructive", title: "Error", description: "Debes iniciar sesión."});
+        return;
+    }
+    setIsSaving(true);
+    const preferencesToSave = settings.reduce((acc, setting) => {
+        acc[setting.id] = setting.enabled;
+        return acc;
+    }, {} as Record<NotificationSetting['id'], boolean>);
+
+    try {
+        await updateUserPreferences(currentUser.uid, { 
+            ...currentUser.preferences, // keep other preferences like theme
+            notifications: preferencesToSave 
         });
+        toast({ title: "Ajustes Guardados", description: "Tus preferencias de notificación han sido actualizadas." });
+    } catch (error: any) {
+        console.error("Error saving notification settings: ", error);
+        toast({ variant: "destructive", title: "Error", description: `No se pudo guardar: ${error.message}` });
+    } finally {
+        setIsSaving(false);
     }
   };
 
@@ -115,24 +129,14 @@ export default function NotificationsPage() {
         notif.id === id ? { ...notif, read: true } : notif
       )
     );
-     toast({
-        title: "Notificación Leída",
-        description: "Has marcado una notificación como leída."
-    });
+     toast({ title: "Notificación Leída", description: "Has marcado una notificación como leída." });
   };
   
   const clearAllNotifications = () => {
     setNotifications([]);
-    toast({
-        title: "Notificaciones Borradas",
-        description: "Todas las notificaciones han sido eliminadas."
-    });
+    toast({ title: "Notificaciones Borradas", description: "Todas las notificaciones han sido eliminadas (vista local)." });
   };
-
-  if (!isMounted) {
-    return null; // Avoid hydration mismatch
-  }
-
+  
   const getCategoryColor = (category: NotificationItem['category']) => {
     switch(category) {
         case 'Recordatorio': return 'border-blue-500 bg-blue-500/10';
@@ -141,7 +145,21 @@ export default function NotificationsPage() {
         case 'Consejo': return 'border-green-500 bg-green-500/10';
         default: return 'border-primary bg-primary/10';
     }
+  };
+  
+  if (authLoading || isLoadingSettings) {
+    return <div className="flex justify-center items-center h-screen"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>;
   }
+  if (!currentUser && !authLoading) {
+     return (
+        <div className="container mx-auto text-center py-20">
+            <h1 className="text-2xl font-semibold">Centro de Notificaciones</h1>
+            <p className="text-muted-foreground mb-4">Inicia sesión para gestionar tus alertas y mensajes.</p>
+            <Button asChild><Link href="/login">Iniciar Sesión</Link></Button>
+        </div>
+    );
+  }
+
 
   return (
     <div className="container mx-auto max-w-4xl">
@@ -174,8 +192,12 @@ export default function NotificationsPage() {
               </div>
             ))}
           </CardContent>
-           <CardFooter>
-            <p className="text-xs text-muted-foreground">Nota: Las notificaciones son conceptuales para esta demo. Estos ajustes controlan las alertas dentro de la aplicación.</p>
+           <CardFooter className="flex-col items-start space-y-2">
+             <Button onClick={handleSaveSettings} disabled={isSaving} className="w-full">
+                {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4"/>}
+                Guardar Ajustes
+            </Button>
+            <p className="text-xs text-muted-foreground">Nota: Las notificaciones push requieren configuración adicional. Estos ajustes controlan las alertas conceptuales y futuras notificaciones push.</p>
           </CardFooter>
         </Card>
 
@@ -189,7 +211,7 @@ export default function NotificationsPage() {
                     </Button>
                 )}
             </div>
-            <CardDescription>Tus últimas actualizaciones e inspiraciones de CasaZen.</CardDescription>
+            <CardDescription>Tus últimas actualizaciones e inspiraciones de CasaZen (vista local de ejemplo).</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3 max-h-[500px] overflow-y-auto p-4">
             {notifications.length > 0 ? (
@@ -219,7 +241,6 @@ export default function NotificationsPage() {
               <div className="text-center py-12 text-muted-foreground">
                 <Bell className="mx-auto h-12 w-12 mb-3 text-primary/50" />
                 <p className="text-lg">No hay notificaciones nuevas por ahora.</p>
-                <p>¡Sigue interactuando con CasaZen para recibir mensajes!</p>
               </div>
             )}
           </CardContent>
