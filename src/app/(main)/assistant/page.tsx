@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Loader2, Send, MessageCircle, User } from 'lucide-react';
+import { Loader2, Send, MessageCircle, User, Bot } from 'lucide-react'; // Added Bot icon
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { geminiAiAssistant, type GeminiAiAssistantInput } from '@/ai/flows/gemini-ai-assistant';
 import { cn } from '@/lib/utils';
@@ -110,16 +110,16 @@ export default function AiAssistantPage() {
     <div className="container mx-auto flex flex-col h-[calc(100vh-10rem)] max-w-3xl">
       <header className="mb-6 text-center">
          <div className="inline-flex items-center justify-center bg-primary/20 p-3 rounded-full mb-3">
-          <MessageCircle className="h-8 w-8 text-primary" />
+          <Bot className="h-8 w-8 text-primary-foreground" /> {/* Changed icon */}
         </div>
-        <h1 className="text-3xl font-bold text-foreground">Asistente IA</h1>
-        <p className="text-muted-foreground">Tu guía personal para consejos, ánimo y bienestar.</p>
+        <h1 className="text-3xl font-bold text-foreground">Asistente IA CasaZen</h1>
+        <p className="text-muted-foreground">Tu guía personal para consejos, ánimo y bienestar integral.</p>
       </header>
 
-      <Card className="flex-1 flex flex-col shadow-xl overflow-hidden">
-        <CardHeader className="border-b">
+      <Card className="flex-1 flex flex-col shadow-xl overflow-hidden border-primary/30">
+        <CardHeader className="border-b border-primary/20">
           <CardTitle>Chatea con CasaZen IA</CardTitle>
-          <CardDescription>Pide consejos, comparte tus sentimientos o busca motivación.</CardDescription>
+          <CardDescription>Pide consejos, comparte tus sentimientos o busca una chispa de motivación.</CardDescription>
         </CardHeader>
         <CardContent className="flex-1 p-0 overflow-hidden">
           <ScrollArea className="h-full p-4" ref={scrollAreaRef}>
@@ -132,19 +132,24 @@ export default function AiAssistantPage() {
                     message.sender === 'user' ? 'ml-auto flex-row-reverse space-x-reverse' : ''
                   )}
                 >
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={message.sender === 'ai' ? "https://placehold.co/40x40.png?text=AI" : "https://placehold.co/40x40.png?text=U"} data-ai-hint={message.sender === 'ai' ? "robot face" : "person silhouette"} />
-                    <AvatarFallback>{message.sender === 'ai' ? <MessageCircle/> : <User/>}</AvatarFallback>
+                  <Avatar className="h-10 w-10"> {/* Increased avatar size */}
+                    <AvatarImage 
+                      src={message.sender === 'ai' ? "https://placehold.co/80x80.png" : "https://placehold.co/80x80.png"} 
+                      data-ai-hint={message.sender === 'ai' ? "animated friendly robot" : "person silhouette pastel"} 
+                    />
+                    <AvatarFallback className={cn(message.sender === 'ai' ? 'bg-secondary text-secondary-foreground' : 'bg-primary text-primary-foreground')}>
+                      {message.sender === 'ai' ? <Bot/> : <User/>}
+                    </AvatarFallback>
                   </Avatar>
                   <div
                     className={cn(
-                      "p-3 rounded-lg shadow-md",
+                      "p-3 rounded-lg shadow-md text-base", // Increased base text size
                       message.sender === 'user'
                         ? 'bg-primary text-primary-foreground rounded-br-none'
                         : 'bg-card-foreground/10 text-foreground rounded-bl-none'
                     )}
                   >
-                    <p className="text-sm whitespace-pre-wrap">{message.text}</p>
+                    <p className="whitespace-pre-wrap">{message.text}</p>
                     <p className={cn("text-xs mt-1", message.sender === 'user' ? 'text-primary-foreground/70' : 'text-muted-foreground/70')}>
                       {formatTimestamp(message.timestamp)}
                     </p>
@@ -153,9 +158,9 @@ export default function AiAssistantPage() {
               ))}
               {isLoading && (
                 <div className="flex items-end space-x-2">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src="https://placehold.co/40x40.png?text=AI" data-ai-hint="robot face" />
-                    <AvatarFallback><MessageCircle/></AvatarFallback>
+                  <Avatar className="h-10 w-10">
+                     <AvatarImage src="https://placehold.co/80x80.png" data-ai-hint="animated friendly robot thinking" />
+                    <AvatarFallback className="bg-secondary text-secondary-foreground"><Bot/></AvatarFallback>
                   </Avatar>
                   <div className="p-3 rounded-lg bg-card-foreground/10 text-foreground rounded-bl-none shadow-md">
                     <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -165,7 +170,7 @@ export default function AiAssistantPage() {
             </div>
           </ScrollArea>
         </CardContent>
-        <CardFooter className="p-4 border-t">
+        <CardFooter className="p-4 border-t border-primary/20">
           {error && (
             <Alert variant="destructive" className="mb-2">
               <AlertTitle>Error</AlertTitle>
@@ -180,10 +185,10 @@ export default function AiAssistantPage() {
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={handleKeyPress}
               disabled={isLoading}
-              className="flex-1 text-base"
+              className="flex-1 text-base h-12" // Increased input height
               aria-label="Entrada de chat"
             />
-            <Button onClick={handleSendMessage} disabled={isLoading || !input.trim()} size="icon" aria-label="Enviar mensaje">
+            <Button onClick={handleSendMessage} disabled={isLoading || !input.trim()} size="lg" aria-label="Enviar mensaje"> {/* Changed to lg size */}
               {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
             </Button>
           </div>

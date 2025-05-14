@@ -1,12 +1,12 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Nunito } from 'next/font/google'; // Changed from Inter to Nunito
 import './globals.css';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { Toaster } from '@/components/ui/toaster';
 
-const inter = Inter({
+const nunito = Nunito({ // Changed from Inter to Nunito
   subsets: ['latin'],
-  variable: '--font-inter',
+  variable: '--font-nunito', // Changed from --font-inter
 });
 
 export const metadata: Metadata = {
@@ -21,7 +21,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <body className={`${inter.variable} antialiased font-sans`}>
+      <body className={`${nunito.variable} antialiased font-sans`}> {/* Changed from inter.variable */}
         <SidebarProvider defaultOpen={true}>
           {children}
         </SidebarProvider>

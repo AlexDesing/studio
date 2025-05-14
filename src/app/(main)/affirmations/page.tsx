@@ -7,14 +7,15 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from "@/components/ui/card";
 import { Label } from '@/components/ui/label';
-import { Loader2, Sparkles, Wand2, PlusCircle, ImagePlus } from 'lucide-react';
+import { Loader2, Sparkles, Wand2, PlusCircle, ImagePlus, Heart, Smile, Zap } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Separator } from '@/components/ui/separator';
 import { generateAffirmation, type GenerateAffirmationInput } from '@/ai/flows/affirmation-generator';
 import type { VisionBoardItem } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
+import { MOOD_OPTIONS } from '@/lib/constants';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-// Mock data for Vision Board - in a real app, this would come from a data source or user input
 const initialVisionBoardItems: VisionBoardItem[] = [
   { id: 'vb1', imageUrl: 'https://placehold.co/400x300.png', imageHint: 'mountain sunrise', title: 'Alcanza tus Cumbres', description: 'Cada paso te acerca a la cima de tus sueños.' },
   { id: 'vb2', imageUrl: 'https://placehold.co/400x300.png', imageHint: 'serene forest', title: 'Conecta con tu Paz Interior', description: 'Encuentra la serenidad en tu viaje personal.' },
@@ -25,6 +26,7 @@ const initialVisionBoardItems: VisionBoardItem[] = [
 
 export default function AffirmationsPage() {
   const [needs, setNeeds] = useState('');
+  const [mood, setMood] = useState<string | undefined>(undefined);
   const [affirmation, setAffirmation] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,8 +39,8 @@ export default function AffirmationsPage() {
   }, []);
 
   const handleGenerateAffirmation = async () => {
-    if (!needs.trim()) {
-      setError('Por favor, describe tus necesidades o metas.');
+    if (!needs.trim() && !mood) {
+      setError('Por favor, describe tus necesidades o selecciona tu estado de ánimo.');
       return;
     }
     setError(null);
@@ -46,7 +48,7 @@ export default function AffirmationsPage() {
     setAffirmation('');
 
     try {
-      const input: GenerateAffirmationInput = { needs };
+      const input: GenerateAffirmationInput = { needs, mood };
       const result = await generateAffirmation(input);
       if (result.affirmation) {
         setAffirmation(result.affirmation);
@@ -81,110 +83,129 @@ export default function AffirmationsPage() {
   }
 
   return (
-    <div className="container mx-auto max-w-3xl space-y-12">
+    <div className="container mx-auto max-w-4xl space-y-12">
       {/* Affirmation Generator Section */}
       <section>
         <header className="mb-8 text-center">
           <div className="inline-flex items-center justify-center bg-primary/20 p-3 rounded-full mb-4">
-            <Wand2 className="h-10 w-10 text-primary" />
+            <Wand2 className="h-10 w-10 text-primary-foreground" />
           </div>
-          <h1 className="text-3xl font-bold text-foreground">Afirmaciones Personalizadas</h1>
-          <p className="text-muted-foreground">Genera afirmaciones positivas adaptadas a tus necesidades y metas.</p>
+          <h1 className="text-4xl font-bold text-foreground">Afirmaciones Personalizadas</h1>
+          <p className="text-lg text-muted-foreground">Crea mensajes positivos que resuenen contigo y te impulsen.</p>
         </header>
 
-        <Card className="shadow-xl">
-          <CardHeader>
-            <CardTitle>Crea Tu Afirmación</CardTitle>
-            <CardDescription>Describe en qué quieres enfocarte o qué quieres lograr, y deja que la IA cree un mensaje positivo para ti.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="needs" className="text-base">Mis necesidades y metas:</Label>
-              <Textarea
-                id="needs"
-                value={needs}
-                onChange={(e) => setNeeds(e.target.value)}
-                placeholder="Ej., 'Quiero sentirme más seguro/a y reducir el estrés relacionado con las tareas diarias.'"
-                rows={4}
-                className="resize-none text-base"
-                aria-label="Describe tus necesidades y metas para la generación de afirmaciones"
-              />
-            </div>
-
-            {error && (
-              <Alert variant="destructive">
-                <AlertTitle>Error</AlertTitle>
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-          </CardContent>
-          <CardFooter className="flex flex-col items-center space-y-6">
-            <Button
-              onClick={handleGenerateAffirmation}
-              disabled={isLoading}
-              className="w-full md:w-auto text-base py-3 px-6"
-              size="lg"
-            >
-              {isLoading ? (
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-              ) : (
-                <Sparkles className="mr-2 h-5 w-5" />
-              )}
-              Generar Afirmación
-            </Button>
-
-            {isLoading && (
-              <div className="text-center text-muted-foreground">
-                <p>Creando tu afirmación personal...</p>
+        <Card className="shadow-xl overflow-hidden">
+          <CardContent className="p-6 md:p-8 grid md:grid-cols-2 gap-8 items-center">
+            <div className="space-y-6">
+              <div>
+                <Label htmlFor="mood" className="text-base font-semibold mb-2 block">¿Cómo te sientes hoy?</Label>
+                <Select value={mood} onValueChange={setMood}>
+                  <SelectTrigger id="mood" className="w-full text-base py-3">
+                    <SelectValue placeholder="Selecciona tu estado de ánimo (opcional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {MOOD_OPTIONS.map(option => (
+                      <SelectItem key={option.value} value={option.value} className="text-base">
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-            )}
+              <div>
+                <Label htmlFor="needs" className="text-base font-semibold mb-2 block">O describe tus necesidades y metas:</Label>
+                <Textarea
+                  id="needs"
+                  value={needs}
+                  onChange={(e) => setNeeds(e.target.value)}
+                  placeholder="Ej., 'Quiero sentirme más segura y reducir el estrés...'"
+                  rows={3}
+                  className="resize-none text-base"
+                  aria-label="Describe tus necesidades y metas para la generación de afirmaciones"
+                />
+              </div>
 
-            {affirmation && !isLoading && (
-              <Card className="w-full bg-accent/30 border-accent shadow-md">
-                <CardHeader>
-                  <CardTitle className="text-accent-foreground flex items-center">
-                    <Sparkles className="mr-2 h-5 w-5 text-primary" /> Tu Afirmación Personalizada:
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-lg font-medium text-accent-foreground/90 text-center italic">
-                    "{affirmation}"
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-          </CardFooter>
+              {error && (
+                <Alert variant="destructive">
+                  <AlertTitle>Error</AlertTitle>
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+                <Button
+                  onClick={handleGenerateAffirmation}
+                  disabled={isLoading}
+                  className="w-full text-lg py-4 px-6"
+                  size="lg"
+                >
+                  {isLoading ? (
+                    <Loader2 className="mr-2 h-6 w-6 animate-spin" />
+                  ) : (
+                    <Sparkles className="mr-2 h-6 w-6" />
+                  )}
+                  Generar Mi Afirmación
+                </Button>
+            </div>
+            <div className="hidden md:flex justify-center items-center">
+                 <Image src="https://placehold.co/300x300.png" alt="Ilustración de bienestar" width={300} height={300} className="rounded-lg" data-ai-hint="flat vector illustration wellbeing meditation" />
+            </div>
+          </CardContent>
+          
+          {(isLoading || affirmation) && (
+            <CardFooter className="flex flex-col items-center p-6 md:p-8 bg-accent/20">
+              {isLoading && (
+                <div className="text-center text-muted-foreground mb-4">
+                  <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary mb-2" />
+                  <p>Creando tu afirmación personal...</p>
+                </div>
+              )}
+
+              {affirmation && !isLoading && (
+                <Card className="w-full bg-background border-primary shadow-lg">
+                  <CardHeader>
+                    <CardTitle className="text-primary-foreground flex items-center text-xl">
+                      <Heart className="mr-2 h-6 w-6 text-primary" /> Tu Afirmación Personalizada:
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-xl font-medium text-foreground/90 text-center italic leading-relaxed">
+                      "{affirmation}"
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+            </CardFooter>
+          )}
         </Card>
       </section>
 
-      <Separator className="my-12" />
+      <Separator className="my-16" />
 
       {/* Vision Board Section */}
       <section>
-        <header className="mb-8 text-center">
-          <div className="inline-flex items-center justify-center bg-secondary/20 p-3 rounded-full mb-4">
-            <ImagePlus className="h-10 w-10 text-secondary-foreground" />
+        <header className="mb-10 text-center">
+          <div className="inline-flex items-center justify-center bg-secondary/30 p-4 rounded-full mb-5">
+            <ImagePlus className="h-12 w-12 text-secondary-foreground" />
           </div>
-          <h2 className="text-3xl font-bold text-foreground">Mi Tablero de Visión</h2>
-          <p className="text-muted-foreground">Un espacio para visualizar tus sueños y aspiraciones más profundas.</p>
+          <h2 className="text-4xl font-bold text-foreground">Mi Tablero de Visión</h2>
+          <p className="text-lg text-muted-foreground mt-2">Un espacio sagrado para visualizar tus sueños y aspiraciones más profundas.</p>
         </header>
         
-        <Card className="shadow-xl bg-card/80 backdrop-blur-sm">
-           <CardHeader className="flex flex-row justify-between items-center">
+        <Card className="shadow-xl bg-card/80 backdrop-blur-sm border-secondary">
+           <CardHeader className="flex flex-row justify-between items-center p-6">
             <div>
               <CardTitle className="text-2xl">Galería de Inspiración</CardTitle>
-              <CardDescription>Visualiza tus metas y sueños.</CardDescription>
+              <CardDescription>Visualiza tus metas y sueños. ¡Hazlos realidad!</CardDescription>
             </div>
-            <Button variant="outline">
-              <PlusCircle className="mr-2 h-4 w-4" /> Añadir Inspiración
+            <Button variant="outline" className="bg-secondary hover:bg-secondary/80 text-secondary-foreground">
+              <PlusCircle className="mr-2 h-5 w-5" /> Añadir Inspiración
             </Button>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-6">
             {visionBoardItems.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                 {visionBoardItems.map(item => (
-                  <Card key={item.id} className="overflow-hidden group hover:shadow-2xl transition-all duration-300 ease-in-out transform hover:scale-105">
-                    <div className="relative w-full h-56">
+                  <Card key={item.id} className="overflow-hidden group hover:shadow-2xl transition-all duration-300 ease-in-out transform hover:scale-105 border-transparent hover:border-primary">
+                    <div className="relative w-full h-60">
                       <Image
                         src={item.imageUrl}
                         alt={item.title}
@@ -194,21 +215,24 @@ export default function AffirmationsPage() {
                         data-ai-hint={item.imageHint}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent opacity-70 group-hover:opacity-90 transition-opacity duration-300"></div>
+                       <div className="absolute top-3 right-3 bg-primary/80 text-primary-foreground p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <Zap size={20} />
+                      </div>
                     </div>
-                    <CardFooter className="p-4 bg-background/80 backdrop-blur-sm">
+                    <CardFooter className="p-5 bg-background/90 backdrop-blur-sm">
                       <div>
-                        <h3 className="font-semibold text-lg text-foreground">{item.title}</h3>
-                        {item.description && <p className="text-sm text-muted-foreground mt-1">{item.description}</p>}
+                        <h3 className="font-semibold text-xl text-foreground mb-1">{item.title}</h3>
+                        {item.description && <p className="text-sm text-muted-foreground">{item.description}</p>}
                       </div>
                     </CardFooter>
                   </Card>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-10 text-muted-foreground">
-                <ImagePlus className="mx-auto h-12 w-12 mb-4" />
-                <p className="text-lg">Tu tablero de visión está esperando tus sueños.</p>
-                <p>¡Añade tu primera inspiración para empezar!</p>
+              <div className="text-center py-12 text-muted-foreground">
+                <ImagePlus className="mx-auto h-16 w-16 mb-4 text-secondary-foreground" />
+                <p className="text-xl mb-1">Tu tablero de visión está esperando tus sueños.</p>
+                <p>¡Añade tu primera inspiración para empezar a manifestar!</p>
               </div>
             )}
           </CardContent>
