@@ -1,3 +1,4 @@
+
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
@@ -17,6 +18,10 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'fonts.gstatic.com', // For Google Fonts, if any are self-hosted or proxied
+      },
+      {
+        protocol: 'https',
+        hostname: 'imgs.search.brave.com',
       }
     ],
   },
