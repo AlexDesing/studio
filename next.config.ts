@@ -13,9 +13,11 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'placehold.co',
-        port: '',
-        pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'fonts.gstatic.com', // For Google Fonts, if any are self-hosted or proxied
+      }
     ],
   },
 };
