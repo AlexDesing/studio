@@ -13,7 +13,8 @@ import { createUserProfileDocument, type UserProfileData } from '@/lib/firebase/
 interface UserProfile extends UserProfileData {
   // Ensure all fields from UserProfileData are here or optional
   // For example, if preferences can sometimes be undefined before creation:
-  preferences?: UserProfileData['preferences'];
+  preferences: NonNullable<UserProfileData['preferences']>; // Make preferences non-nullable here
+  photoURL: string | null; // Ensure photoURL is string | null
 }
 
 interface AuthContextType {
@@ -24,7 +25,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const defaultUserPreferences: UserProfileData['preferences'] = {
+const defaultUserPreferences: NonNullable<UserProfileData['preferences']> = {
   notifications: {
     taskReminders: true,
     dailyTips: true,
@@ -49,44 +50,51 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (!userDocSnap.exists()) {
           console.warn(`User document not found for UID: ${user.uid}. Attempting to create it.`);
           try {
-            // Attempt to create the user document
             await createUserProfileDocument(user.uid, {
               email: user.email,
               displayName: user.displayName,
-              photoURL: user.photoURL,
-              // createdAt and preferences are handled by createUserProfileDocument's defaults
+              photoURL: user.photoURL || null, // Ensure null here
             });
-            userDocSnap = await getDoc(userDocRef); // Re-fetch the document
+            userDocSnap = await getDoc(userDocRef); 
 
             if (userDocSnap.exists()) {
-              setCurrentUser({ uid: user.uid, ...userDocSnap.data() } as UserProfile);
+              const data = userDocSnap.data();
+              setCurrentUser({ 
+                uid: user.uid, 
+                ...data, 
+                photoURL: data.photoURL || null, // Default to null if missing
+                preferences: data.preferences || defaultUserPreferences // Default preferences
+              } as UserProfile);
             } else {
-              // If still not found after creation attempt, something is wrong. Fallback.
               console.error(`Failed to create or find user document for UID: ${user.uid} after attempt. Using basic FirebaseUser info with default preferences.`);
               setCurrentUser({
                 uid: user.uid,
                 email: user.email,
                 displayName: user.displayName,
-                photoURL: user.photoURL,
-                createdAt: new Date(), // Placeholder, ideally should be serverTimestamp but this is a fallback
+                photoURL: user.photoURL || null, // Default to null
+                createdAt: new Date(), 
                 preferences: defaultUserPreferences,
               } as UserProfile);
             }
           } catch (creationError) {
             console.error(`Error creating user document for UID: ${user.uid}:`, creationError);
-            // Fallback in case of creation error
             setCurrentUser({
               uid: user.uid,
               email: user.email,
               displayName: user.displayName,
-              photoURL: user.photoURL,
-              createdAt: new Date(), // Placeholder
+              photoURL: user.photoURL || null, // Default to null
+              createdAt: new Date(), 
               preferences: defaultUserPreferences,
             } as UserProfile);
           }
         } else {
-          // Document exists
-          setCurrentUser({ uid: user.uid, ...userDocSnap.data() } as UserProfile);
+          const data = userDocSnap.data();
+          setCurrentUser({ 
+            uid: user.uid, 
+            ...data, 
+            photoURL: data.photoURL || null, // Default to null if missing
+            preferences: data.preferences || defaultUserPreferences // Default preferences
+          } as UserProfile);
         }
       } else {
         setCurrentUser(null);

@@ -13,8 +13,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, UserCircle, ImageUp, Save, Palette, BellRing } from 'lucide-react';
 import { updateUserProfileDocument, type UserProfileData } from '@/lib/firebase/firestore/users';
 import { uploadUserAvatar } from '@/lib/firebase/storage';
-import { auth } from '@/lib/firebase/config'; // For direct Firebase User object
-import { updateUserProfile } from '@/lib/firebase/auth'; // For updating Auth user profile // CORRECTED IMPORT
+import { auth } from '@/lib/firebase/config'; 
+import { updateUserProfile } from '@/lib/firebase/auth'; 
 
 export default function SettingsPage() {
   const { currentUser, loading: authLoading } = useAuth();
@@ -25,14 +25,14 @@ export default function SettingsPage() {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [isSavingPreferences, setIsSavingPreferences] = useState(false);
-  const [theme, setTheme] = useState('light'); // Example, load from currentUser.preferences.theme
+  const [theme, setTheme] = useState('light'); 
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (currentUser) {
       setDisplayName(currentUser.displayName || '');
-      setAvatarPreview(currentUser.photoURL || null);
+      setAvatarPreview(currentUser.photoURL || null); // currentUser.photoURL is now string | null
       setTheme(currentUser.preferences?.theme || 'light');
     }
   }, [currentUser]);
@@ -52,52 +52,52 @@ export default function SettingsPage() {
     }
     setIsSavingProfile(true);
     try {
-      let photoURL = currentUser.photoURL;
+      // Local photoURL will be string (new URL) or null (if original was null and no new upload)
+      // currentUser.photoURL is guaranteed string | null by AuthContext
+      let localPhotoURL: string | null = currentUser.photoURL; 
       if (newAvatarFile) {
-        photoURL = await uploadUserAvatar(currentUser.uid, newAvatarFile);
+        localPhotoURL = await uploadUserAvatar(currentUser.uid, newAvatarFile);
       }
 
-      const profileUpdateForAuth: { displayName?: string; photoURL?: string } = {};
+      // Prepare data for Firebase Auth update
+      const profileUpdateForAuth: { displayName?: string; photoURL?: string | null } = {};
       if (displayName !== currentUser.displayName) {
         profileUpdateForAuth.displayName = displayName;
       }
-      if (photoURL && photoURL !== currentUser.photoURL) {
-        profileUpdateForAuth.photoURL = photoURL;
+      if (localPhotoURL !== currentUser.photoURL) { // Check if it actually changed
+        profileUpdateForAuth.photoURL = localPhotoURL; // Can be string or null
       }
       
-      // Update Firebase Auth profile if there are changes
       if (Object.keys(profileUpdateForAuth).length > 0) {
-        await updateUserProfile(auth.currentUser, profileUpdateForAuth); // Use the corrected function name
+        await updateUserProfile(auth.currentUser, profileUpdateForAuth);
       }
       
-      // Update Firestore document (this part can be more specific based on what actually changed)
-      // For instance, only update if displayName or photoURL actually changed from what's in Firestore
-      // For simplicity now, we just pass them.
+      // Prepare data for Firestore document update
+      // localPhotoURL is string | null here. displayName is string.
       const firestoreUpdateData: Partial<UserProfileData> = {
-        displayName: displayName, // update with current state
-        photoURL: photoURL || currentUser.photoURL, // update with new or existing photoURL
+        displayName: displayName,
+        photoURL: localPhotoURL, 
       };
       await updateUserProfileDocument(currentUser.uid, firestoreUpdateData);
       
       toast({ title: 'Perfil Actualizado', description: 'Tus cambios han sido guardados.' });
-      // Optionally force re-fetch of currentUser in AuthContext or optimistically update
+      // AuthContext will re-fetch user on next auth state change or app reload, reflecting updates.
     } catch (error: any) {
       console.error("Error updating profile: ", error);
       toast({ variant: 'destructive', title: 'Error', description: `No se pudo actualizar el perfil: ${error.message}` });
     } finally {
       setIsSavingProfile(false);
-      setNewAvatarFile(null); // Clear file after attempt
+      setNewAvatarFile(null); 
     }
   };
 
-  // Placeholder for saving preferences
   const handleSavePreferences = async () => {
     if (!currentUser) return;
     setIsSavingPreferences(true);
     try {
         await updateUserProfileDocument(currentUser.uid, {
             preferences: {
-                ...currentUser.preferences, // keep existing preferences
+                ...currentUser.preferences, 
                 theme: theme as 'light' | 'dark' | 'system',
             }
         });
@@ -117,7 +117,6 @@ export default function SettingsPage() {
     return names[0][0].toUpperCase() + names[names.length - 1][0].toUpperCase();
   };
 
-
   if (authLoading) {
     return <div className="flex justify-center items-center h-64"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
   }
@@ -133,7 +132,6 @@ export default function SettingsPage() {
         <p className="text-muted-foreground">Personaliza tu experiencia en CasaZen.</p>
       </header>
 
-      {/* Profile Settings Card */}
       <Card className="shadow-lg">
         <CardHeader>
           <div className="flex items-center space-x-3">
@@ -177,7 +175,6 @@ export default function SettingsPage() {
         </CardFooter>
       </Card>
 
-      {/* Preferences Card - Example */}
       <Card className="shadow-lg">
         <CardHeader>
           <div className="flex items-center space-x-3">
@@ -187,7 +184,6 @@ export default function SettingsPage() {
           <CardDescription>Elige cómo se ve CasaZen para ti.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Theme selection example */}
           <div className="space-y-2">
             <Label htmlFor="theme">Tema</Label>
             <select 
@@ -211,7 +207,6 @@ export default function SettingsPage() {
         </CardFooter>
       </Card>
       
-      {/* Notification Preferences Card - Example */}
       <Card className="shadow-lg">
         <CardHeader>
            <div className="flex items-center space-x-3">
@@ -223,10 +218,8 @@ export default function SettingsPage() {
         <CardContent>
             <p className="text-muted-foreground">Aquí podrás configurar tus notificaciones de tareas, consejos y más. (Funcionalidad completa en desarrollo).</p>
             <div className="mt-4 space-y-2">
-                {/* Example Toggle */}
                 <div className="flex items-center justify-between">
                     <Label htmlFor="taskReminders">Recordatorios de Tareas</Label>
-                    {/* <Switch id="taskReminders" checked={true} /> */}
                     <p className="text-sm text-primary">(Activado)</p>
                 </div>
                  <div className="flex items-center justify-between">
