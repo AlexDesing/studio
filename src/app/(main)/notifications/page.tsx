@@ -6,7 +6,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter }
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Bell, Trash2, Sparkles, Coffee } from 'lucide-react';
+import { Bell, Trash2, Sparkles, Coffee, Lightbulb } from 'lucide-react'; // Added Lightbulb
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { MOCK_TASKS } from '@/lib/constants'; 
