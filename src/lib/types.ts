@@ -23,3 +23,11 @@ export interface Tip {
   title: string;
   content: string;
 }
+
+export interface VisionBoardItem {
+  id: string;
+  imageUrl: string;
+  imageHint: string;
+  title: string;
+  description?: string;
+}
