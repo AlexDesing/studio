@@ -5,16 +5,15 @@ import type React from 'react';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { onAuthStateChanged, type User as FirebaseUser } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase/config';
-import { doc, getDoc, DocumentData } from 'firebase/firestore';
+import { doc, getDoc, type DocumentData } from 'firebase/firestore';
 import { Loader2 } from 'lucide-react';
+import { createUserProfileDocument, type UserProfileData } from '@/lib/firebase/firestore/users'; // Import createUserProfileDocument
 
-interface UserProfile extends DocumentData {
-  uid: string;
-  email: string | null;
-  displayName: string | null;
-  photoURL?: string | null;
-  // Add other profile fields as needed
-  notificationPreferences?: any; // Define more specific type later
+// Define a consistent UserProfile type, aligning with UserProfileData
+interface UserProfile extends UserProfileData {
+  // Ensure all fields from UserProfileData are here or optional
+  // For example, if preferences can sometimes be undefined before creation:
+  preferences?: UserProfileData['preferences'];
 }
 
 interface AuthContextType {
@@ -25,29 +24,69 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const defaultUserPreferences: UserProfileData['preferences'] = {
+  notifications: {
+    taskReminders: true,
+    dailyTips: true,
+    affirmationReady: true,
+    motivationalPhrases: true,
+    selfCareReminders: true,
+  },
+  theme: 'light',
+};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isManuallyCheckingAuth, setIsManuallyCheckingAuth] = useState(true);
 
-
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user: FirebaseUser | null) => {
       if (user) {
         const userDocRef = doc(db, 'users', user.uid);
-        const userDocSnap = await getDoc(userDocRef);
-        if (userDocSnap.exists()) {
-          setCurrentUser({ uid: user.uid, ...userDocSnap.data() } as UserProfile);
+        let userDocSnap = await getDoc(userDocRef);
+
+        if (!userDocSnap.exists()) {
+          console.warn(`User document not found for UID: ${user.uid}. Attempting to create it.`);
+          try {
+            // Attempt to create the user document
+            await createUserProfileDocument(user.uid, {
+              email: user.email,
+              displayName: user.displayName,
+              photoURL: user.photoURL,
+              // createdAt and preferences are handled by createUserProfileDocument's defaults
+            });
+            userDocSnap = await getDoc(userDocRef); // Re-fetch the document
+
+            if (userDocSnap.exists()) {
+              setCurrentUser({ uid: user.uid, ...userDocSnap.data() } as UserProfile);
+            } else {
+              // If still not found after creation attempt, something is wrong. Fallback.
+              console.error(`Failed to create or find user document for UID: ${user.uid} after attempt. Using basic FirebaseUser info with default preferences.`);
+              setCurrentUser({
+                uid: user.uid,
+                email: user.email,
+                displayName: user.displayName,
+                photoURL: user.photoURL,
+                createdAt: new Date(), // Placeholder, ideally should be serverTimestamp but this is a fallback
+                preferences: defaultUserPreferences,
+              } as UserProfile);
+            }
+          } catch (creationError) {
+            console.error(`Error creating user document for UID: ${user.uid}:`, creationError);
+            // Fallback in case of creation error
+            setCurrentUser({
+              uid: user.uid,
+              email: user.email,
+              displayName: user.displayName,
+              photoURL: user.photoURL,
+              createdAt: new Date(), // Placeholder
+              preferences: defaultUserPreferences,
+            } as UserProfile);
+          }
         } else {
-          // This case might happen if user doc creation failed or if user was created directly in Firebase console
-          // For now, just set basic info from FirebaseUser, ideally user doc should always exist
-           setCurrentUser({
-            uid: user.uid,
-            email: user.email,
-            displayName: user.displayName,
-            photoURL: user.photoURL,
-          });
-          console.warn(`User document not found for UID: ${user.uid}. Using basic FirebaseUser info.`);
+          // Document exists
+          setCurrentUser({ uid: user.uid, ...userDocSnap.data() } as UserProfile);
         }
       } else {
         setCurrentUser(null);
