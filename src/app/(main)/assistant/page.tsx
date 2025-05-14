@@ -33,7 +33,7 @@ export default function AiAssistantPage() {
     setIsMounted(true);
     // Initial AI message
     setMessages([
-      { id: 'initial', text: "Hello! I'm your CasaZen assistant. How can I help you find balance and joy today?", sender: 'ai', timestamp: new Date() }
+      { id: 'initial', text: "¡Hola! Soy tu asistente CasaZen. ¿Cómo puedo ayudarte a encontrar equilibrio y alegría hoy?", sender: 'ai', timestamp: new Date() }
     ]);
   }, []);
 
@@ -74,20 +74,20 @@ export default function AiAssistantPage() {
         };
         setMessages(prev => [...prev, aiMessage]);
       } else {
-        setError('The assistant could not provide a response. Please try again.');
+        setError('El asistente no pudo proporcionar una respuesta. Por favor, inténtalo de nuevo.');
         toast({
-          title: "Assistant Error",
-          description: "The assistant could not provide a response.",
+          title: "Error del Asistente",
+          description: "El asistente no pudo proporcionar una respuesta.",
           variant: "destructive",
         });
       }
     } catch (e) {
       console.error(e);
-      const errorMessage = e instanceof Error ? e.message : 'An unexpected error occurred.';
-      setError(`Failed to get response from assistant: ${errorMessage}`);
+      const errorMessage = e instanceof Error ? e.message : 'Ocurrió un error inesperado.';
+      setError(`Error al obtener respuesta del asistente: ${errorMessage}`);
       toast({
-          title: "Connection Error",
-          description: `Failed to get response from assistant: ${errorMessage}`,
+          title: "Error de Conexión",
+          description: `Error al obtener respuesta del asistente: ${errorMessage}`,
           variant: "destructive",
         });
     } finally {
@@ -112,14 +112,14 @@ export default function AiAssistantPage() {
          <div className="inline-flex items-center justify-center bg-primary/20 p-3 rounded-full mb-3">
           <MessageCircle className="h-8 w-8 text-primary" />
         </div>
-        <h1 className="text-3xl font-bold text-foreground">AI Assistant</h1>
-        <p className="text-muted-foreground">Your personal guide for advice, encouragement, and well-being.</p>
+        <h1 className="text-3xl font-bold text-foreground">Asistente IA</h1>
+        <p className="text-muted-foreground">Tu guía personal para consejos, ánimo y bienestar.</p>
       </header>
 
       <Card className="flex-1 flex flex-col shadow-xl overflow-hidden">
         <CardHeader className="border-b">
-          <CardTitle>Chat with CasaZen AI</CardTitle>
-          <CardDescription>Ask for tips, share your feelings, or seek motivation.</CardDescription>
+          <CardTitle>Chatea con CasaZen IA</CardTitle>
+          <CardDescription>Pide consejos, comparte tus sentimientos o busca motivación.</CardDescription>
         </CardHeader>
         <CardContent className="flex-1 p-0 overflow-hidden">
           <ScrollArea className="h-full p-4" ref={scrollAreaRef}>
@@ -175,15 +175,15 @@ export default function AiAssistantPage() {
           <div className="flex w-full items-center space-x-2">
             <Input
               type="text"
-              placeholder="Type your message..."
+              placeholder="Escribe tu mensaje..."
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={handleKeyPress}
               disabled={isLoading}
               className="flex-1 text-base"
-              aria-label="Chat input"
+              aria-label="Entrada de chat"
             />
-            <Button onClick={handleSendMessage} disabled={isLoading || !input.trim()} size="icon" aria-label="Send message">
+            <Button onClick={handleSendMessage} disabled={isLoading || !input.trim()} size="icon" aria-label="Enviar mensaje">
               {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
             </Button>
           </div>
@@ -194,5 +194,5 @@ export default function AiAssistantPage() {
 }
 
 function formatTimestamp(date: Date): string {
-  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  return date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
 }

@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from "@/components/ui/card";
-import { Label } from "@/components/ui/label';
+import { Label } from '@/components/ui/label';
 import { Loader2, Sparkles, Wand2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { generateAffirmation, type GenerateAffirmationInput } from '@/ai/flows/affirmation-generator';
@@ -25,7 +25,7 @@ export default function AffirmationsPage() {
 
   const handleGenerateAffirmation = async () => {
     if (!needs.trim()) {
-      setError('Please describe your needs or goals.');
+      setError('Por favor, describe tus necesidades o metas.');
       return;
     }
     setError(null);
@@ -38,24 +38,24 @@ export default function AffirmationsPage() {
       if (result.affirmation) {
         setAffirmation(result.affirmation);
         toast({
-          title: "Affirmation Generated!",
-          description: "Your new affirmation is ready.",
+          title: "¡Afirmación Generada!",
+          description: "Tu nueva afirmación está lista.",
         });
       } else {
-        setError('Could not generate an affirmation. Please try again.');
+        setError('No se pudo generar una afirmación. Por favor, inténtalo de nuevo.');
         toast({
           title: "Error",
-          description: "Failed to generate affirmation.",
+          description: "Error al generar la afirmación.",
           variant: "destructive",
         });
       }
     } catch (e) {
       console.error(e);
-      const errorMessage = e instanceof Error ? e.message : 'An unexpected error occurred.';
-      setError(`Failed to generate affirmation: ${errorMessage}`);
+      const errorMessage = e instanceof Error ? e.message : 'Ocurrió un error inesperado.';
+      setError(`Error al generar afirmación: ${errorMessage}`);
        toast({
           title: "Error",
-          description: `Failed to generate affirmation: ${errorMessage}`,
+          description: `Error al generar afirmación: ${errorMessage}`,
           variant: "destructive",
         });
     } finally {
@@ -73,26 +73,26 @@ export default function AffirmationsPage() {
         <div className="inline-flex items-center justify-center bg-primary/20 p-3 rounded-full mb-4">
           <Sparkles className="h-10 w-10 text-primary" />
         </div>
-        <h1 className="text-3xl font-bold text-foreground">Personalized Affirmations</h1>
-        <p className="text-muted-foreground">Generate positive affirmations tailored to your needs and goals.</p>
+        <h1 className="text-3xl font-bold text-foreground">Afirmaciones Personalizadas</h1>
+        <p className="text-muted-foreground">Genera afirmaciones positivas adaptadas a tus necesidades y metas.</p>
       </header>
 
       <Card className="shadow-xl">
         <CardHeader>
-          <CardTitle>Create Your Affirmation</CardTitle>
-          <CardDescription>Describe what you want to focus on or achieve, and let AI craft a positive message for you.</CardDescription>
+          <CardTitle>Crea Tu Afirmación</CardTitle>
+          <CardDescription>Describe en qué quieres enfocarte o qué quieres lograr, y deja que la IA cree un mensaje positivo para ti.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="needs" className="text-base">My needs & goals:</Label>
+            <Label htmlFor="needs" className="text-base">Mis necesidades y metas:</Label>
             <Textarea
               id="needs"
               value={needs}
               onChange={(e) => setNeeds(e.target.value)}
-              placeholder="E.g., 'I want to feel more confident and reduce stress related to daily chores.'"
+              placeholder="Ej., 'Quiero sentirme más seguro/a y reducir el estrés relacionado con las tareas diarias.'"
               rows={4}
               className="resize-none text-base"
-              aria-label="Describe your needs and goals for affirmation generation"
+              aria-label="Describe tus necesidades y metas para la generación de afirmaciones"
             />
           </div>
 
@@ -115,12 +115,12 @@ export default function AffirmationsPage() {
             ) : (
               <Wand2 className="mr-2 h-5 w-5" />
             )}
-            Generate Affirmation
+            Generar Afirmación
           </Button>
 
           {isLoading && (
             <div className="text-center text-muted-foreground">
-              <p>Crafting your personal affirmation...</p>
+              <p>Creando tu afirmación personal...</p>
             </div>
           )}
 
@@ -128,7 +128,7 @@ export default function AffirmationsPage() {
             <Card className="w-full bg-accent/30 border-accent shadow-md">
               <CardHeader>
                 <CardTitle className="text-accent-foreground flex items-center">
-                  <Sparkles className="mr-2 h-5 w-5 text-primary" /> Your Daily Affirmation:
+                  <Sparkles className="mr-2 h-5 w-5 text-primary" /> Tu Afirmación Diaria:
                 </CardTitle>
               </CardHeader>
               <CardContent>

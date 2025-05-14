@@ -64,15 +64,15 @@ export default function MainAppLayout({
         <SidebarFooter className="p-2">
           <SidebarMenu>
              <SidebarMenuItem>
-                <SidebarMenuButton className="justify-start w-full hover:bg-sidebar-accent hover:text-sidebar-accent-foreground" tooltip={{children: "Settings", className: "group-data-[collapsible=icon]:block hidden"}}>
+                <SidebarMenuButton className="justify-start w-full hover:bg-sidebar-accent hover:text-sidebar-accent-foreground" tooltip={{children: "Configuración", className: "group-data-[collapsible=icon]:block hidden"}}>
                     <Settings className="h-5 w-5" />
-                    <span>Settings</span>
+                    <span>Configuración</span>
                 </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-                <SidebarMenuButton className="justify-start w-full hover:bg-sidebar-accent hover:text-sidebar-accent-foreground" tooltip={{children: "Log Out", className: "group-data-[collapsible=icon]:block hidden"}}>
+                <SidebarMenuButton className="justify-start w-full hover:bg-sidebar-accent hover:text-sidebar-accent-foreground" tooltip={{children: "Cerrar Sesión", className: "group-data-[collapsible=icon]:block hidden"}}>
                     <LogOut className="h-5 w-5" />
-                    <span>Log Out</span>
+                    <span>Cerrar Sesión</span>
                 </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>

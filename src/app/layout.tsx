@@ -11,7 +11,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: 'CasaZen - Una mente sana refleja lo mejor',
-  description: 'Your personal assistant for home management, well-being, and self-love.',
+  description: 'Tu asistente personal para la gestión del hogar, el bienestar y el amor propio.',
 };
 
 export default function RootLayout({
@@ -20,7 +20,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="es" suppressHydrationWarning>
       <body className={`${inter.variable} antialiased font-sans`}>
         <SidebarProvider defaultOpen={true}>
           {children}

@@ -15,6 +15,7 @@ import { PlusCircle, Edit3, Trash2, GripVertical } from 'lucide-react';
 import { MOCK_TASKS } from '@/lib/constants';
 import type { Task } from '@/lib/types';
 import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 
 export default function DailyPlannerPage() {
@@ -43,7 +44,7 @@ export default function DailyPlannerPage() {
        // For demonstration, let's add some generic tasks if none found for other dates
        if (dateTasks.length === 0 && format(date, 'yyyy-MM-dd') !== format(new Date(), 'yyyy-MM-dd')) {
          setTasks([
-           {id: String(Date.now()), title: `Task for ${format(date, 'MMM d')}`, date: date, completed: false, priority: 'Medium' }
+           {id: String(Date.now()), title: `Tarea para ${format(date, 'MMM d', { locale: es })}`, date: date, completed: false, priority: 'Medium' }
          ]);
        } else {
         setTasks(dateTasks);
@@ -80,6 +81,16 @@ export default function DailyPlannerPage() {
     // Close dialog - requires managing dialog open state
   };
 
+  const getPriorityText = (priority: 'High' | 'Medium' | 'Low' | undefined): string => {
+    if (!priority) return '';
+    switch (priority) {
+      case 'High': return 'Alta';
+      case 'Medium': return 'Media';
+      case 'Low': return 'Baja';
+      default: return '';
+    }
+  };
+
   if (!isMounted) {
     return null; // Avoid hydration mismatch
   }
@@ -91,14 +102,14 @@ export default function DailyPlannerPage() {
   return (
     <div className="container mx-auto">
       <header className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground">Daily Planner</h1>
-        <p className="text-muted-foreground">Organize your day, achieve your goals.</p>
+        <h1 className="text-3xl font-bold text-foreground">Planificador Diario</h1>
+        <p className="text-muted-foreground">Organiza tu día, alcanza tus metas.</p>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-1 shadow-lg">
           <CardHeader>
-            <CardTitle>Calendar</CardTitle>
+            <CardTitle>Calendario</CardTitle>
           </CardHeader>
           <CardContent className="flex justify-center">
             <Calendar
@@ -106,6 +117,7 @@ export default function DailyPlannerPage() {
               selected={selectedDate}
               onSelect={handleDateSelect}
               className="rounded-md border"
+              locale={es}
             />
           </CardContent>
         </Card>
@@ -114,51 +126,51 @@ export default function DailyPlannerPage() {
           <CardHeader>
             <div className="flex justify-between items-center">
               <CardTitle>
-                Tasks for {selectedDate ? format(selectedDate, 'MMMM d, yyyy') : 'Select a date'}
+                Tareas para {selectedDate ? format(selectedDate, 'MMMM d, yyyy', { locale: es }) : 'Selecciona una fecha'}
               </CardTitle>
               <Dialog>
                 <DialogTrigger asChild>
                   <Button size="sm" variant="default">
-                    <PlusCircle className="mr-2 h-4 w-4" /> Add Task
+                    <PlusCircle className="mr-2 h-4 w-4" /> Añadir Tarea
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Add New Task</DialogTitle>
+                    <DialogTitle>Añadir Nueva Tarea</DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4 py-2 pb-4">
                     <div className="space-y-2">
-                      <Label htmlFor="taskTitle">Title</Label>
-                      <Input id="taskTitle" value={newTaskTitle} onChange={(e) => setNewTaskTitle(e.target.value)} placeholder="E.g., Morning Walk" />
+                      <Label htmlFor="taskTitle">Título</Label>
+                      <Input id="taskTitle" value={newTaskTitle} onChange={(e) => setNewTaskTitle(e.target.value)} placeholder="Ej., Caminata Matutina" />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="taskTime">Time (Optional)</Label>
+                      <Label htmlFor="taskTime">Hora (Opcional)</Label>
                       <Input id="taskTime" type="time" value={newTaskTime} onChange={(e) => setNewTaskTime(e.target.value)} />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="taskCategory">Category (Optional)</Label>
-                      <Input id="taskCategory" value={newTaskCategory} onChange={(e) => setNewTaskCategory(e.target.value)} placeholder="E.g., Wellness" />
+                      <Label htmlFor="taskCategory">Categoría (Opcional)</Label>
+                      <Input id="taskCategory" value={newTaskCategory} onChange={(e) => setNewTaskCategory(e.target.value)} placeholder="Ej., Bienestar" />
                     </div>
                      <div className="space-y-2">
-                        <Label htmlFor="taskPriority">Priority</Label>
+                        <Label htmlFor="taskPriority">Prioridad</Label>
                         <Select value={newTaskPriority} onValueChange={(value: 'High' | 'Medium' | 'Low') => setNewTaskPriority(value)}>
                           <SelectTrigger id="taskPriority">
-                            <SelectValue placeholder="Select priority" />
+                            <SelectValue placeholder="Seleccionar prioridad" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="High">High</SelectItem>
-                            <SelectItem value="Medium">Medium</SelectItem>
-                            <SelectItem value="Low">Low</SelectItem>
+                            <SelectItem value="High">Alta</SelectItem>
+                            <SelectItem value="Medium">Media</SelectItem>
+                            <SelectItem value="Low">Baja</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
                   </div>
                   <DialogFooter>
                     <DialogClose asChild>
-                       <Button variant="outline">Cancel</Button>
+                       <Button variant="outline">Cancelar</Button>
                     </DialogClose>
                     <DialogClose asChild>
-                      <Button onClick={handleAddTask}>Add Task</Button>
+                      <Button onClick={handleAddTask}>Añadir Tarea</Button>
                     </DialogClose>
                   </DialogFooter>
                 </DialogContent>
@@ -176,7 +188,7 @@ export default function DailyPlannerPage() {
                         id={`task-${task.id}`}
                         checked={task.completed}
                         onCheckedChange={() => handleToggleTask(task.id)}
-                        aria-label={`Mark task ${task.title} as ${task.completed ? 'incomplete' : 'complete'}`}
+                        aria-label={`Marcar tarea ${task.title} como ${task.completed ? 'incompleta' : 'completa'}`}
                       />
                       <div className="flex-1">
                         <label
@@ -193,14 +205,14 @@ export default function DailyPlannerPage() {
                               task.priority === 'High' && 'text-red-500',
                               task.priority === 'Medium' && 'text-yellow-500',
                               task.priority === 'Low' && 'text-green-500',
-                            )}>| {task.priority}</span>}
+                            )}>| {getPriorityText(task.priority)}</span>}
                           </div>
                         )}
                       </div>
-                      <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Edit task">
+                      <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Editar tarea">
                         <Edit3 className="h-4 w-4 text-muted-foreground" />
                       </Button>
-                       <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Delete task" onClick={() => setTasks(tasks.filter(t => t.id !== task.id))}>
+                       <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Eliminar tarea" onClick={() => setTasks(tasks.filter(t => t.id !== task.id))}>
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
                     </li>
@@ -208,7 +220,7 @@ export default function DailyPlannerPage() {
                 </ul>
               ) : (
                 <p className="text-muted-foreground text-center py-10">
-                  No tasks for this day. Enjoy your free time or add a new task!
+                  No hay tareas para este día. ¡Disfruta tu tiempo libre o añade una nueva tarea!
                 </p>
               )}
             </ScrollArea>

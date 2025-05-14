@@ -1,10 +1,10 @@
 // 'use server';
 /**
- * @fileOverview Generates daily positive affirmations tailored to the user’s specific needs and goals using AI.
+ * @fileOverview Genera afirmaciones positivas diarias adaptadas a las necesidades y metas específicas del usuario usando IA.
  *
- * - generateAffirmation - A function that generates a daily positive affirmation.
- * - GenerateAffirmationInput - The input type for the generateAffirmation function.
- * - GenerateAffirmationOutput - The return type for the generateAffirmation function.
+ * - generateAffirmation - Una función que genera una afirmación positiva diaria.
+ * - GenerateAffirmationInput - El tipo de entrada para la función generateAffirmation.
+ * - GenerateAffirmationOutput - El tipo de retorno para la función generateAffirmation.
  */
 
 'use server';
@@ -13,12 +13,12 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const GenerateAffirmationInputSchema = z.object({
-  needs: z.string().describe('The user’s specific needs and goals.'),
+  needs: z.string().describe('Las necesidades y metas específicas del usuario.'),
 });
 export type GenerateAffirmationInput = z.infer<typeof GenerateAffirmationInputSchema>;
 
 const GenerateAffirmationOutputSchema = z.object({
-  affirmation: z.string().describe('A positive affirmation tailored to the user’s needs and goals.'),
+  affirmation: z.string().describe('Una afirmación positiva adaptada a las necesidades y metas del usuario.'),
 });
 export type GenerateAffirmationOutput = z.infer<typeof GenerateAffirmationOutputSchema>;
 
@@ -30,11 +30,11 @@ const prompt = ai.definePrompt({
   name: 'generateAffirmationPrompt',
   input: {schema: GenerateAffirmationInputSchema},
   output: {schema: GenerateAffirmationOutputSchema},
-  prompt: `You are a helpful AI assistant that specializes in providing positive affirmations.
+  prompt: `Eres un asistente de IA útil que se especializa en proporcionar afirmaciones positivas.
 
-  Based on the user's needs and goals, generate a positive affirmation that is tailored to them.
+  Basado en las necesidades y metas del usuario, genera una afirmación positiva que sea personalizada para él/ella.
 
-  User needs and goals: {{{needs}}}
+  Necesidades y metas del usuario: {{{needs}}}
   `,
 });
 

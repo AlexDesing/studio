@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Bell, Trash2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
+import { MOCK_TASKS, MOCK_TIPS } from '@/lib/constants'; // For mock notification content
 
 interface NotificationSetting {
   id: string;
@@ -24,18 +25,36 @@ interface NotificationItem {
   read: boolean;
 }
 
-// Mock initial state
+// Mock initial state with Spanish text
 const initialSettings: NotificationSetting[] = [
-  { id: 'taskReminders', label: 'Task Reminders', enabled: true },
-  { id: 'dailyTips', label: 'Daily Tips', enabled: true },
-  { id: 'affirmationReady', label: 'Affirmation Ready', enabled: true },
-  { id: 'aiResponse', label: 'AI Assistant Responses', enabled: false },
+  { id: 'taskReminders', label: 'Recordatorios de Tareas', enabled: true },
+  { id: 'dailyTips', label: 'Consejos Diarios', enabled: true },
+  { id: 'affirmationReady', label: 'Afirmación Lista', enabled: true },
+  { id: 'aiResponse', label: 'Respuestas del Asistente IA', enabled: false },
 ];
 
 const initialNotifications: NotificationItem[] = [
-  { id: '1', title: 'Task Reminder', message: 'Your task "Plan meals for the week" is due soon.', timestamp: new Date(Date.now() - 3600000), read: false },
-  { id: '2', title: 'New Daily Tip!', message: 'Check out today\'s cleaning tip: Quick Clean Bathroom.', timestamp: new Date(Date.now() - 7200000), read: true },
-  { id: '3', title: 'Affirmation Generated', message: 'Your personalized affirmation is ready!', timestamp: new Date(Date.now() - 10800000), read: false },
+  { 
+    id: '1', 
+    title: 'Recordatorio de Tarea', 
+    message: `Tu tarea "${MOCK_TASKS.find(t => t.id === '2')?.title || 'Planificar comidas'}" vence pronto.`, 
+    timestamp: new Date(Date.now() - 3600000), 
+    read: false 
+  },
+  { 
+    id: '2', 
+    title: '¡Nuevo Consejo Diario!', 
+    message: `Echa un vistazo al consejo de limpieza de hoy: ${MOCK_TIPS.cleaning.find(t => t.id === 'c1')?.title || 'Limpieza Rápida de Baño'}.`, 
+    timestamp: new Date(Date.now() - 7200000), 
+    read: true 
+  },
+  { 
+    id: '3', 
+    title: 'Afirmación Generada', 
+    message: '¡Tu afirmación personalizada está lista!', 
+    timestamp: new Date(Date.now() - 10800000), 
+    read: false 
+  },
 ];
 
 
@@ -50,16 +69,24 @@ export default function NotificationsPage() {
   }, []);
 
   const toggleSetting = (id: string) => {
+    let changedSettingLabel = '';
+    let newEnabledState = false;
+
     setSettings(prev =>
-      prev.map(setting =>
-        setting.id === id ? { ...setting, enabled: !setting.enabled } : setting
-      )
+      prev.map(setting => {
+        if (setting.id === id) {
+          changedSettingLabel = setting.label;
+          newEnabledState = !setting.enabled;
+          return { ...setting, enabled: newEnabledState };
+        }
+        return setting;
+      })
     );
-    const changedSetting = settings.find(s => s.id === id);
-    if (changedSetting) {
+    
+    if (changedSettingLabel) {
         toast({
-            title: "Setting Updated",
-            description: `${changedSetting.label} notifications ${!changedSetting.enabled ? "enabled" : "disabled"}.`
+            title: "Configuración Actualizada",
+            description: `Notificaciones de ${changedSettingLabel} ${newEnabledState ? "activadas" : "desactivadas"}.`
         });
     }
   };
@@ -75,8 +102,8 @@ export default function NotificationsPage() {
   const clearAllNotifications = () => {
     setNotifications([]);
     toast({
-        title: "Notifications Cleared",
-        description: "All notifications have been removed."
+        title: "Notificaciones Borradas",
+        description: "Todas las notificaciones han sido eliminadas."
     });
   };
 
@@ -90,15 +117,15 @@ export default function NotificationsPage() {
          <div className="inline-flex items-center justify-center bg-primary/20 p-3 rounded-full mb-3">
           <Bell className="h-8 w-8 text-primary" />
         </div>
-        <h1 className="text-3xl font-bold text-foreground">Notifications</h1>
-        <p className="text-muted-foreground">Manage your alerts and stay updated with CasaZen.</p>
+        <h1 className="text-3xl font-bold text-foreground">Notificaciones</h1>
+        <p className="text-muted-foreground">Gestiona tus alertas y mantente al día con CasaZen.</p>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="shadow-lg">
           <CardHeader>
-            <CardTitle>Notification Settings</CardTitle>
-            <CardDescription>Choose what you want to be notified about.</CardDescription>
+            <CardTitle>Configuración de Notificaciones</CardTitle>
+            <CardDescription>Elige sobre qué quieres recibir notificaciones.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {settings.map(setting => (
@@ -110,27 +137,27 @@ export default function NotificationsPage() {
                   id={setting.id}
                   checked={setting.enabled}
                   onCheckedChange={() => toggleSetting(setting.id)}
-                  aria-label={`Toggle ${setting.label} notifications`}
+                  aria-label={`Activar/Desactivar notificaciones de ${setting.label}`}
                 />
               </div>
             ))}
           </CardContent>
            <CardFooter>
-            <p className="text-xs text-muted-foreground">Note: Actual browser/push notifications are conceptual for this demo. These settings control in-app alerts.</p>
+            <p className="text-xs text-muted-foreground">Nota: Las notificaciones reales del navegador/push son conceptuales para esta demostración. Estos ajustes controlan las alertas dentro de la aplicación.</p>
           </CardFooter>
         </Card>
 
         <Card className="shadow-lg">
           <CardHeader>
             <div className="flex justify-between items-center">
-                <CardTitle>Recent Notifications</CardTitle>
+                <CardTitle>Notificaciones Recientes</CardTitle>
                 {notifications.length > 0 && (
                     <Button variant="outline" size="sm" onClick={clearAllNotifications}>
-                        <Trash2 className="mr-2 h-4 w-4" /> Clear All
+                        <Trash2 className="mr-2 h-4 w-4" /> Borrar Todas
                     </Button>
                 )}
             </div>
-            <CardDescription>Your latest updates from CasaZen.</CardDescription>
+            <CardDescription>Tus últimas actualizaciones de CasaZen.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3 max-h-[400px] overflow-y-auto">
             {notifications.length > 0 ? (
@@ -146,17 +173,17 @@ export default function NotificationsPage() {
                     </div>
                     {!notif.read && (
                       <Button variant="ghost" size="sm" onClick={() => markAsRead(notif.id)}>
-                        Mark as read
+                        Marcar como leída
                       </Button>
                     )}
                   </div>
                   <p className={`text-xs mt-1 ${notif.read ? 'text-muted-foreground/60' : 'text-primary-foreground/70'}`}>
-                    {notif.timestamp.toLocaleTimeString()} - {notif.timestamp.toLocaleDateString()}
+                    {notif.timestamp.toLocaleTimeString('es-ES')} - {notif.timestamp.toLocaleDateString('es-ES')}
                   </p>
                 </div>
               ))
             ) : (
-              <p className="text-muted-foreground text-center py-10">No new notifications.</p>
+              <p className="text-muted-foreground text-center py-10">No hay notificaciones nuevas.</p>
             )}
           </CardContent>
         </Card>

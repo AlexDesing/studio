@@ -2,23 +2,23 @@
 'use server';
 
 /**
- * @fileOverview An AI assistant powered by Gemini to provide advice and encouragement.
+ * @fileOverview Un asistente de IA impulsado por Gemini para proporcionar consejos y aliento.
  *
- * - geminiAiAssistant - A function that handles the AI assistant interaction.
- * - GeminiAiAssistantInput - The input type for the geminiAiAssistant function.
- * - GeminiAiAssistantOutput - The return type for the geminiAiAssistant function.
+ * - geminiAiAssistant - Una función que maneja la interacción del asistente de IA.
+ * - GeminiAiAssistantInput - El tipo de entrada para la función geminiAiAssistant.
+ * - GeminiAiAssistantOutput - El tipo de retorno para la función geminiAiAssistant.
  */
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const GeminiAiAssistantInputSchema = z.object({
-  feedback: z.string().describe('The user feedback for the AI assistant.'),
+  feedback: z.string().describe('Los comentarios del usuario para el asistente de IA.'),
 });
 export type GeminiAiAssistantInput = z.infer<typeof GeminiAiAssistantInputSchema>;
 
 const GeminiAiAssistantOutputSchema = z.object({
-  response: z.string().describe('The AI assistant response based on the feedback.'),
+  response: z.string().describe('La respuesta del asistente de IA basada en los comentarios.'),
 });
 export type GeminiAiAssistantOutput = z.infer<typeof GeminiAiAssistantOutputSchema>;
 
@@ -30,11 +30,11 @@ const prompt = ai.definePrompt({
   name: 'geminiAiAssistantPrompt',
   input: {schema: GeminiAiAssistantInputSchema},
   output: {schema: GeminiAiAssistantOutputSchema},
-  prompt: `You are a helpful and encouraging AI assistant designed to provide personalized support to users for their daily tasks and mental well-being.
+  prompt: `Eres un asistente de IA útil y alentador diseñado para proporcionar apoyo personalizado a los usuarios para sus tareas diarias y bienestar mental.
 
-  Based on the user's feedback, provide advice, encouragement, and positive affirmations.
+  Basado en los comentarios del usuario, proporciona consejos, aliento y afirmaciones positivas.
 
-  Feedback: {{{feedback}}}
+  Comentarios: {{{feedback}}}
   `,
 });
 
