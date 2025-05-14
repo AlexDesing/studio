@@ -32,7 +32,7 @@ export default function SettingsPage() {
   useEffect(() => {
     if (currentUser) {
       setDisplayName(currentUser.displayName || '');
-      setAvatarPreview(currentUser.photoURL || null); // currentUser.photoURL is now string | null
+      setAvatarPreview(currentUser.photoURL || null); 
       setTheme(currentUser.preferences?.theme || 'light');
     }
   }, [currentUser]);
@@ -52,28 +52,24 @@ export default function SettingsPage() {
     }
     setIsSavingProfile(true);
     try {
-      // Local photoURL will be string (new URL) or null (if original was null and no new upload)
-      // currentUser.photoURL is guaranteed string | null by AuthContext
-      let localPhotoURL: string | null = currentUser.photoURL; 
+      let localPhotoURL: string | null = avatarPreview; // Use avatarPreview as it reflects UI state
       if (newAvatarFile) {
         localPhotoURL = await uploadUserAvatar(currentUser.uid, newAvatarFile);
       }
 
-      // Prepare data for Firebase Auth update
       const profileUpdateForAuth: { displayName?: string; photoURL?: string | null } = {};
       if (displayName !== currentUser.displayName) {
         profileUpdateForAuth.displayName = displayName;
       }
-      if (localPhotoURL !== currentUser.photoURL) { // Check if it actually changed
-        profileUpdateForAuth.photoURL = localPhotoURL; // Can be string or null
+      // Only update photoURL in Auth if it has changed or if a new file was uploaded
+      if (localPhotoURL !== currentUser.photoURL || newAvatarFile) { 
+        profileUpdateForAuth.photoURL = localPhotoURL;
       }
       
       if (Object.keys(profileUpdateForAuth).length > 0) {
         await updateUserProfile(auth.currentUser, profileUpdateForAuth);
       }
       
-      // Prepare data for Firestore document update
-      // localPhotoURL is string | null here. displayName is string.
       const firestoreUpdateData: Partial<UserProfileData> = {
         displayName: displayName,
         photoURL: localPhotoURL, 
@@ -81,7 +77,6 @@ export default function SettingsPage() {
       await updateUserProfileDocument(currentUser.uid, firestoreUpdateData);
       
       toast({ title: 'Perfil Actualizado', description: 'Tus cambios han sido guardados.' });
-      // AuthContext will re-fetch user on next auth state change or app reload, reflecting updates.
     } catch (error: any) {
       console.error("Error updating profile: ", error);
       toast({ variant: 'destructive', title: 'Error', description: `No se pudo actualizar el perfil: ${error.message}` });
@@ -110,11 +105,25 @@ export default function SettingsPage() {
     }
   };
   
-  const getInitials = (name: string | null | undefined) => {
-    if (!name) return 'CZ';
-    const names = name.split(' ');
-    if (names.length === 1) return names[0].substring(0, 2).toUpperCase();
-    return names[0][0].toUpperCase() + names[names.length - 1][0].toUpperCase();
+  const getInitials = (name: string | null | undefined): string => {
+    if (!name || name.trim() === '') {
+      return 'CZ';
+    }
+
+    const nameParts = name.trim().split(' ').filter(part => part.length > 0);
+
+    if (nameParts.length === 0) {
+      return 'CZ';
+    }
+
+    if (nameParts.length === 1) {
+      return nameParts[0].substring(0, 2).toUpperCase();
+    }
+
+    // At least two parts exist, and they are not empty strings
+    const firstInitial = nameParts[0][0].toUpperCase();
+    const lastInitial = nameParts[nameParts.length - 1][0].toUpperCase();
+    return `${firstInitial}${lastInitial}`;
   };
 
   if (authLoading) {
