@@ -14,7 +14,7 @@ import { Loader2, UserCircle, ImageUp, Save, Palette, BellRing } from 'lucide-re
 import { updateUserProfileDocument, type UserProfileData } from '@/lib/firebase/firestore/users';
 import { uploadUserAvatar } from '@/lib/firebase/storage';
 import { auth } from '@/lib/firebase/config'; // For direct Firebase User object
-import { updateFirebaseProfile } from '@/lib/firebase/auth'; // For updating Auth user profile
+import { updateUserProfile } from '@/lib/firebase/auth'; // For updating Auth user profile // CORRECTED IMPORT
 
 export default function SettingsPage() {
   const { currentUser, loading: authLoading } = useAuth();
@@ -57,20 +57,27 @@ export default function SettingsPage() {
         photoURL = await uploadUserAvatar(currentUser.uid, newAvatarFile);
       }
 
-      const profileUpdateData: Partial<UserProfileData> = {};
+      const profileUpdateForAuth: { displayName?: string; photoURL?: string } = {};
       if (displayName !== currentUser.displayName) {
-        profileUpdateData.displayName = displayName;
+        profileUpdateForAuth.displayName = displayName;
       }
       if (photoURL && photoURL !== currentUser.photoURL) {
-        profileUpdateData.photoURL = photoURL;
+        profileUpdateForAuth.photoURL = photoURL;
       }
-
-      if (Object.keys(profileUpdateData).length > 0) {
-        // Update Firebase Auth profile
-        await updateFirebaseProfile(auth.currentUser, { displayName: profileUpdateData.displayName, photoURL: profileUpdateData.photoURL });
-        // Update Firestore document
-        await updateUserProfileDocument(currentUser.uid, profileUpdateData);
+      
+      // Update Firebase Auth profile if there are changes
+      if (Object.keys(profileUpdateForAuth).length > 0) {
+        await updateUserProfile(auth.currentUser, profileUpdateForAuth); // Use the corrected function name
       }
+      
+      // Update Firestore document (this part can be more specific based on what actually changed)
+      // For instance, only update if displayName or photoURL actually changed from what's in Firestore
+      // For simplicity now, we just pass them.
+      const firestoreUpdateData: Partial<UserProfileData> = {
+        displayName: displayName, // update with current state
+        photoURL: photoURL || currentUser.photoURL, // update with new or existing photoURL
+      };
+      await updateUserProfileDocument(currentUser.uid, firestoreUpdateData);
       
       toast({ title: 'Perfil Actualizado', description: 'Tus cambios han sido guardados.' });
       // Optionally force re-fetch of currentUser in AuthContext or optimistically update
@@ -87,9 +94,20 @@ export default function SettingsPage() {
   const handleSavePreferences = async () => {
     if (!currentUser) return;
     setIsSavingPreferences(true);
-    // Example: await updateUserPreferences(currentUser.uid, { notifications: {...}, theme });
-    toast({ title: 'Preferencias Guardadas (Simulado)', description: 'Tus preferencias se han guardado.' });
-    setIsSavingPreferences(false);
+    try {
+        await updateUserProfileDocument(currentUser.uid, {
+            preferences: {
+                ...currentUser.preferences, // keep existing preferences
+                theme: theme as 'light' | 'dark' | 'system',
+            }
+        });
+        toast({ title: 'Preferencias Guardadas', description: 'Tus preferencias se han guardado.' });
+    } catch (error: any) {
+        console.error("Error saving preferences:", error);
+        toast({ variant: 'destructive', title: 'Error', description: `No se pudieron guardar las preferencias: ${error.message}`});
+    } finally {
+        setIsSavingPreferences(false);
+    }
   };
   
   const getInitials = (name: string | null | undefined) => {
@@ -188,7 +206,7 @@ export default function SettingsPage() {
         <CardFooter>
           <Button onClick={handleSavePreferences} disabled={isSavingPreferences} className="ml-auto" variant="secondary">
             {isSavingPreferences ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-            Guardar Preferencias (Simulado)
+            Guardar Preferencias
           </Button>
         </CardFooter>
       </Card>
@@ -218,9 +236,9 @@ export default function SettingsPage() {
             </div>
         </CardContent>
          <CardFooter>
-          <Button onClick={handleSavePreferences} disabled={isSavingPreferences} className="ml-auto" variant="outline">
-            {isSavingPreferences ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-            Guardar Notificaciones (Simulado)
+          <Button onClick={() => toast({title: "Próximamente", description: "Configuración de notificaciones aún en desarrollo."})} className="ml-auto" variant="outline">
+            <Save className="mr-2 h-4 w-4" />
+            Guardar Notificaciones (Próximamente)
           </Button>
         </CardFooter>
       </Card>
