@@ -52,7 +52,8 @@ export default function SettingsPage() {
     }
     setIsSavingProfile(true);
     try {
-      let localPhotoURL: string | null = avatarPreview; // Use avatarPreview as it reflects UI state
+      let localPhotoURL: string | null = avatarPreview; 
+
       if (newAvatarFile) {
         localPhotoURL = await uploadUserAvatar(currentUser.uid, newAvatarFile);
       }
@@ -61,7 +62,7 @@ export default function SettingsPage() {
       if (displayName !== currentUser.displayName) {
         profileUpdateForAuth.displayName = displayName;
       }
-      // Only update photoURL in Auth if it has changed or if a new file was uploaded
+      
       if (localPhotoURL !== currentUser.photoURL || newAvatarFile) { 
         profileUpdateForAuth.photoURL = localPhotoURL;
       }
@@ -229,11 +230,11 @@ export default function SettingsPage() {
             <div className="mt-4 space-y-2">
                 <div className="flex items-center justify-between">
                     <Label htmlFor="taskReminders">Recordatorios de Tareas</Label>
-                    <p className="text-sm text-primary">(Activado)</p>
+                    <p className="text-sm text-highlight-purple">(Activado)</p>
                 </div>
                  <div className="flex items-center justify-between">
                     <Label htmlFor="dailyTips">Consejos Diarios</Label>
-                    <p className="text-sm text-primary">(Activado)</p>
+                    <p className="text-sm text-highlight-purple">(Activado)</p>
                 </div>
             </div>
         </CardContent>

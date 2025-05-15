@@ -56,6 +56,8 @@ body {
     --chart-3: 250 50% 60%; /* Lavender shade */
     --chart-4: 160 50% 70%; /* Teal/Aqua shade */
     --chart-5: 45 100% 80%; /* Soft Yellow */
+
+    --highlight-purple: 270 60% 50%; /* New purple for text highlight */
   }
 
   .dark {
@@ -102,6 +104,8 @@ body {
     --chart-3: 250 40% 50%;
     --chart-4: 160 40% 60%;
     --chart-5: 45 80% 70%;
+
+    --highlight-purple: 270 70% 75%; /* New purple for text highlight in dark mode */
   }
 }
 

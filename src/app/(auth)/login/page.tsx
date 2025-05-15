@@ -109,7 +109,7 @@ export default function LoginPage() {
                   <FormMessage />
                   <div className="text-right">
                     <Link href="/forgot-password" passHref legacyBehavior>
-                        <a className="text-sm text-primary hover:underline">¿Olvidaste tu contraseña?</a>
+                        <a className="text-sm text-highlight-purple hover:underline">¿Olvidaste tu contraseña?</a>
                     </Link>
                   </div>
                 </FormItem>
@@ -137,7 +137,7 @@ export default function LoginPage() {
         <p className="text-sm text-muted-foreground">
           ¿No tienes una cuenta?{' '}
           <Link href="/signup" passHref legacyBehavior>
-            <a className="font-semibold text-primary hover:underline">Regístrate aquí</a>
+            <a className="font-semibold text-highlight-purple hover:underline">Regístrate aquí</a>
           </Link>
         </p>
       </CardFooter>

@@ -143,10 +143,14 @@ export default function NotificationsPage() {
         case 'Motivación': return 'border-purple-500 bg-purple-500/10';
         case 'Autocuidado': return 'border-pink-500 bg-pink-500/10';
         case 'Consejo': return 'border-green-500 bg-green-500/10';
-        default: return 'border-primary bg-primary/10';
+        default: return 'border-border bg-muted/10'; // Changed default to use border and muted
     }
   };
   
+  const getIconColorClass = (read: boolean) => {
+    return read ? 'text-muted-foreground' : 'text-highlight-purple';
+  };
+
   if (authLoading || isLoadingSettings) {
     return <div className="flex justify-center items-center h-screen"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>;
   }
@@ -221,7 +225,7 @@ export default function NotificationsPage() {
                   className={`p-4 rounded-lg border-l-4 ${notif.read ? 'border-border bg-card-foreground/5 opacity-70' : getCategoryColor(notif.category)}`}
                 >
                   <div className="flex items-start gap-3">
-                    {notif.icon && <notif.icon className={`h-6 w-6 mt-1 ${notif.read ? 'text-muted-foreground' : 'text-primary'}`} />}
+                    {notif.icon && <notif.icon className={`h-6 w-6 mt-1 ${getIconColorClass(notif.read)}`} />}
                     <div className="flex-grow">
                       <h4 className={`font-semibold ${notif.read ? 'text-muted-foreground' : 'text-foreground'}`}>{notif.title}</h4>
                       <p className={`text-sm ${notif.read ? 'text-muted-foreground/80' : 'text-foreground/90'}`}>{notif.message}</p>

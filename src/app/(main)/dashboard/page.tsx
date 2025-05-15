@@ -191,7 +191,7 @@ export default function DashboardPage() {
                   <Card key={index} className="bg-card-foreground/5 p-4">
                     <CardTitle className="text-md font-semibold text-foreground mb-1">{rec.title}</CardTitle>
                     <CardDescription className="text-sm text-muted-foreground">{rec.description}</CardDescription>
-                    <p className="text-xs text-primary mt-2 uppercase font-medium">{rec.category}</p>
+                    <p className="text-xs text-highlight-purple mt-2 uppercase font-medium">{rec.category}</p>
                   </Card>
                 ))}
               </div>
@@ -200,7 +200,7 @@ export default function DashboardPage() {
             )}
           </CardContent>
            <CardFooter>
-                <Button variant="link" onClick={fetchRecommendations} disabled={isLoadingRecs}>
+                <Button variant="link" onClick={fetchRecommendations} disabled={isLoadingRecs} className="text-highlight-purple">
                     {isLoadingRecs ? "Cargando..." : "Refrescar Recomendaciones"}
                 </Button>
            </CardFooter>

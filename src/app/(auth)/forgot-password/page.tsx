@@ -99,7 +99,7 @@ export default function ForgotPasswordPage() {
           <p className="text-sm text-muted-foreground">
             ¿Recordaste tu contraseña?{' '}
             <Link href="/login" passHref legacyBehavior>
-                <a className="font-semibold text-primary hover:underline">Ingresa aquí</a>
+                <a className="font-semibold text-highlight-purple hover:underline">Ingresa aquí</a>
             </Link>
           </p>
         </CardFooter>

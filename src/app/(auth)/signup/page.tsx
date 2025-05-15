@@ -148,7 +148,7 @@ export default function SignUpPage() {
         <p className="text-sm text-muted-foreground">
           ¿Ya tienes una cuenta?{' '}
           <Link href="/login" passHref legacyBehavior>
-            <a className="font-semibold text-primary hover:underline">Ingresa aquí</a>
+            <a className="font-semibold text-highlight-purple hover:underline">Ingresa aquí</a>
           </Link>
         </p>
       </CardFooter>
