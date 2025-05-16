@@ -58,7 +58,12 @@ export default function AffirmationsPage() {
       setIsLoadingVisionBoard(true);
       const unsubscribe = onVisionBoardItemsSnapshot(currentUser.uid, (items) => {
         setVisionBoardItems(items);
-        setCurrentVisionPageIndex(0); // Reset to first page when items change
+        // Only reset page index if it's out of bounds or initially
+        if (currentVisionPageIndex >= items.length && items.length > 0) {
+          setCurrentVisionPageIndex(items.length - 1);
+        } else if (items.length === 0) {
+          setCurrentVisionPageIndex(0);
+        }
         setIsLoadingVisionBoard(false);
       });
       return () => unsubscribe();
@@ -66,7 +71,7 @@ export default function AffirmationsPage() {
         setVisionBoardItems([]);
         setIsLoadingVisionBoard(false);
     }
-  }, [currentUser, authLoading]);
+  }, [currentUser, authLoading, currentVisionPageIndex]); // Added currentVisionPageIndex to dependencies to avoid stale closure issues if needed
 
   const handleGenerateAffirmation = async () => {
     if (!needs.trim() && !mood) {
@@ -182,11 +187,12 @@ export default function AffirmationsPage() {
             await deleteVisionBoardItem(currentUser.uid, itemId);
             toast({title: "Elemento Eliminado"});
             // Adjust current page if the deleted item was the last one and not the only one
-            if (currentVisionPageIndex >= visionBoardItems.length - 1 && visionBoardItems.length > 1) {
-                setCurrentVisionPageIndex(Math.max(0, currentVisionPageIndex - 1));
-            } else if (visionBoardItems.length === 1) { // If it was the only item
-                setCurrentVisionPageIndex(0); // Reset or handle empty state
+            if (visionBoardItems.length -1 === 0) { // if it was the last item
+                setCurrentVisionPageIndex(0);
+            } else if (currentVisionPageIndex >= visionBoardItems.length - 1) { // If on the last page that now doesn't exist
+                 setCurrentVisionPageIndex(Math.max(0, currentVisionPageIndex - 1));
             }
+            // No need to manually filter visionBoardItems, onVisionBoardItemsSnapshot will update it
         } catch (error: any) {
             console.error("Error deleting vision board item: ", error);
             toast({variant: "destructive", title: "Error al Eliminar", description: error.message});
@@ -338,7 +344,10 @@ export default function AffirmationsPage() {
         ) : visionBoardItems.length > 0 && currentVisionItem ? (
           <Card className="shadow-2xl bg-card/90 backdrop-blur-sm border-secondary/50 rounded-xl overflow-hidden relative pb-16 min-h-[600px] flex flex-col">
             {/* Page Content */}
-            <div className="flex-grow p-6 md:p-10 bg-gradient-to-br from-background to-card/50 relative">
+            <div 
+              key={currentVisionItem.id} // Added key for animation trigger
+              className="flex-grow p-6 md:p-10 bg-gradient-to-br from-background to-card/50 relative animate-in fade-in duration-500" // Added animation classes
+            >
                 {/* Page Curl Effect (decorative) */}
                 <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-transparent via-transparent to-secondary/20 opacity-50 pointer-events-none" style={{ clipPath: 'polygon(100% 0, 0 0, 100% 100%)' }}></div>
                 
@@ -437,5 +446,7 @@ export default function AffirmationsPage() {
     </div>
   );
 }
+
+    
 
     
