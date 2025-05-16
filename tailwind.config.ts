@@ -60,7 +60,7 @@ export default {
   				border: 'hsl(var(--sidebar-border))',
   				ring: 'hsl(var(--sidebar-ring))'
   			},
-        'highlight-purple': 'hsl(var(--highlight-purple))', // Added new color utility
+        'highlight-purple': 'hsl(var(--highlight-purple))',
   		},
   		borderRadius: {
   			lg: 'var(--radius)',
@@ -83,11 +83,16 @@ export default {
   				to: {
   					height: '0'
   				}
-  			}
+  			},
+        float: {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(-10px)' },
+        }
   		},
   		animation: {
   			'accordion-down': 'accordion-down 0.2s ease-out',
-  			'accordion-up': 'accordion-up 0.2s ease-out'
+  			'accordion-up': 'accordion-up 0.2s ease-out',
+        float: 'float 3s ease-in-out infinite',
   		}
   	}
   },

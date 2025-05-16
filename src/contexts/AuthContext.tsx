@@ -6,15 +6,12 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { onAuthStateChanged, type User as FirebaseUser } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase/config';
 import { doc, getDoc, type DocumentData } from 'firebase/firestore';
-import { Loader2 } from 'lucide-react';
-import { createUserProfileDocument, type UserProfileData } from '@/lib/firebase/firestore/users'; // Import createUserProfileDocument
+import CustomLoader from '@/components/CustomLoader'; // Import CustomLoader
+import { createUserProfileDocument, type UserProfileData } from '@/lib/firebase/firestore/users';
 
-// Define a consistent UserProfile type, aligning with UserProfileData
 interface UserProfile extends UserProfileData {
-  // Ensure all fields from UserProfileData are here or optional
-  // For example, if preferences can sometimes be undefined before creation:
-  preferences: NonNullable<UserProfileData['preferences']>; // Make preferences non-nullable here
-  photoURL: string | null; // Ensure photoURL is string | null
+  preferences: NonNullable<UserProfileData['preferences']>;
+  photoURL: string | null; 
 }
 
 interface AuthContextType {
@@ -52,8 +49,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           try {
             await createUserProfileDocument(user.uid, {
               email: user.email,
-              displayName: user.displayName || 'Usuario MovaZen', // Default display name
-              photoURL: user.photoURL || null, 
+              displayName: user.displayName || 'Usuario MovaZen',
+              photoURL: user.photoURL || null,
+              preferences: defaultUserPreferences, 
             });
             userDocSnap = await getDoc(userDocRef); 
 
@@ -108,8 +106,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   if (loading || isManuallyCheckingAuth) {
     return (
-      <div className="flex h-screen w-screen items-center justify-center">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      <div className="flex h-screen w-screen items-center justify-center bg-background">
+        <CustomLoader /> {/* Use CustomLoader */}
       </div>
     );
   }
