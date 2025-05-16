@@ -45,7 +45,7 @@ export default function MainAppLayout({
   };
   
   const getInitials = (name: string | null | undefined) => {
-    if (!name) return 'CZ';
+    if (!name) return 'MZ'; // MovaZen initials
     const names = name.split(' ');
     if (names.length === 1) return names[0].substring(0, 2).toUpperCase();
     return names[0][0].toUpperCase() + names[names.length - 1][0].toUpperCase();
@@ -118,8 +118,8 @@ export default function MainAppLayout({
           </SidebarFooter>
         </Sidebar>
         <SidebarInset className="flex-1 bg-background">
-          <div className="py-4 md:py-6 w-full"> {/* MODIFIED: Removed horizontal padding p-4 md:p-6 */}
-            <div className="flex items-center justify-between mb-6 md:hidden px-4"> {/* Added px-4 here for mobile header spacing */}
+          <div className="py-4 md:py-6 w-full"> 
+            <div className="flex items-center justify-between mb-6 md:hidden px-4"> 
               <AppLogo />
               <SidebarTrigger />
             </div>

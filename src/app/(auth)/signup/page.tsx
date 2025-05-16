@@ -46,7 +46,7 @@ export default function SignUpPage() {
     setIsLoading(true);
     try {
       await signUpWithEmail(data.email, data.password, data.displayName);
-      toast({ title: '¡Cuenta Creada!', description: 'Bienvenida a CasaZen. Tu cuenta ha sido creada exitosamente.' });
+      toast({ title: '¡Cuenta Creada!', description: 'Bienvenida a MovaZen. Tu cuenta ha sido creada exitosamente.' });
       // router.push('/'); // Removed: AuthGuard will handle redirection
     } catch (error: any) {
       console.error("Error signing up: ", error);
@@ -81,7 +81,7 @@ export default function SignUpPage() {
   return (
     <Card className="w-full shadow-xl">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl">Crea tu Cuenta en CasaZen</CardTitle>
+        <CardTitle className="text-2xl">Crea tu Cuenta en MovaZen</CardTitle>
         <CardDescription>Únete a nuestra comunidad y encuentra tu equilibrio.</CardDescription>
       </CardHeader>
       <CardContent>

@@ -109,13 +109,13 @@ export default function SettingsPage() {
   
   const getInitials = (name: string | null | undefined): string => {
     if (!name || name.trim() === '') {
-      return 'CZ';
+      return 'MZ'; // MovaZen initials
     }
 
     const nameParts = name.trim().split(' ').filter(part => part.length > 0);
 
     if (nameParts.length === 0) {
-      return 'CZ';
+      return 'MZ'; // MovaZen initials
     }
 
     if (nameParts.length === 1) {
@@ -142,10 +142,10 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="w-full max-w-5xl px-6 ml-[calc(max(0px,50vw-40rem))] space-y-10"> {/* MODIFIED for viewport centering */}
+    <div className="w-full max-w-5xl px-6 ml-[calc(max(0px,50vw-40rem))] space-y-10"> 
       <header className="text-center">
         <h1 className="text-3xl font-bold text-foreground">Configuración de la Cuenta</h1>
-        <p className="text-muted-foreground">Personaliza tu experiencia en CasaZen.</p>
+        <p className="text-muted-foreground">Personaliza tu experiencia en MovaZen.</p>
       </header>
 
       <Card className="shadow-lg">
@@ -197,7 +197,7 @@ export default function SettingsPage() {
              <Palette className="h-7 w-7 text-secondary" />
             <CardTitle className="text-xl">Preferencias de Apariencia</CardTitle>
           </div>
-          <CardDescription>Elige cómo se ve CasaZen para ti.</CardDescription>
+          <CardDescription>Elige cómo se ve MovaZen para ti.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">

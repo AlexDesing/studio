@@ -52,8 +52,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           try {
             await createUserProfileDocument(user.uid, {
               email: user.email,
-              displayName: user.displayName,
-              photoURL: user.photoURL || null, // Ensure null here
+              displayName: user.displayName || 'Usuario MovaZen', // Default display name
+              photoURL: user.photoURL || null, 
             });
             userDocSnap = await getDoc(userDocRef); 
 
@@ -62,16 +62,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               setCurrentUser({ 
                 uid: user.uid, 
                 ...data, 
-                photoURL: data.photoURL || null, // Default to null if missing
-                preferences: data.preferences || defaultUserPreferences // Default preferences
+                photoURL: data.photoURL || null, 
+                preferences: data.preferences || defaultUserPreferences 
               } as UserProfile);
             } else {
               console.error(`Failed to create or find user document for UID: ${user.uid} after attempt. Using basic FirebaseUser info with default preferences.`);
               setCurrentUser({
                 uid: user.uid,
                 email: user.email,
-                displayName: user.displayName,
-                photoURL: user.photoURL || null, // Default to null
+                displayName: user.displayName || 'Usuario MovaZen',
+                photoURL: user.photoURL || null, 
                 createdAt: new Date(), 
                 preferences: defaultUserPreferences,
               } as UserProfile);
@@ -81,8 +81,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setCurrentUser({
               uid: user.uid,
               email: user.email,
-              displayName: user.displayName,
-              photoURL: user.photoURL || null, // Default to null
+              displayName: user.displayName || 'Usuario MovaZen',
+              photoURL: user.photoURL || null, 
               createdAt: new Date(), 
               preferences: defaultUserPreferences,
             } as UserProfile);
@@ -92,8 +92,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setCurrentUser({ 
             uid: user.uid, 
             ...data, 
-            photoURL: data.photoURL || null, // Default to null if missing
-            preferences: data.preferences || defaultUserPreferences // Default preferences
+            photoURL: data.photoURL || null, 
+            preferences: data.preferences || defaultUserPreferences 
           } as UserProfile);
         }
       } else {

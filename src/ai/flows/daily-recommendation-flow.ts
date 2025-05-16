@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview Genera recomendaciones diarias de hábitos y consejos usando IA.
@@ -34,7 +35,7 @@ const prompt = ai.definePrompt({
   name: 'dailyRecommendationPrompt',
   input: {schema: DailyRecommendationInputSchema},
   output: {schema: DailyRecommendationOutputSchema},
-  prompt: `Eres CasaZen AI, un coach de bienestar y productividad experto en ayudar a amas de casa, freelancers y creadoras de contenido.
+  prompt: `Eres MovaZen AI, un coach de bienestar y productividad experto en ayudar a amas de casa, freelancers y creadoras de contenido.
 Tu objetivo es proporcionar 3 recomendaciones prácticas y personalizadas basadas en el contexto del usuario.
 
 Contexto del usuario: {{{userContext}}}

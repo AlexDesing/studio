@@ -79,7 +79,7 @@ export default function LoginPage() {
     <Card className="w-full shadow-xl">
       <CardHeader className="text-center">
         <CardTitle className="text-2xl">¡Hola de Nuevo!</CardTitle>
-        <CardDescription>Ingresa a tu espacio CasaZen.</CardDescription>
+        <CardDescription>Ingresa a tu espacio MovaZen.</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>

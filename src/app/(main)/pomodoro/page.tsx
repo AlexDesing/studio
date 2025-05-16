@@ -142,7 +142,7 @@ export default function PomodoroPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-md">
+    <div className="w-full max-w-5xl px-6 ml-[calc(max(0px,50vw-36rem))]">
       <header className="mb-10 text-center">
         <div className="inline-flex items-center justify-center bg-primary/20 p-4 rounded-full mb-4">
             <Timer className="h-12 w-12 text-primary-foreground" />

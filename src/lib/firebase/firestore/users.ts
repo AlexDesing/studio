@@ -45,7 +45,7 @@ export const createUserProfileDocument = async (
     try {
       await setDoc(userDocRef, {
         uid,
-        displayName: data.displayName || 'Usuario CasaZen',
+        displayName: data.displayName || 'Usuario MovaZen',
         email: data.email,
         photoURL: data.photoURL || null,
         createdAt: serverTimestamp(),

@@ -1,3 +1,4 @@
+
 // src/ai/flows/gemini-ai-assistant.ts
 'use server';
 
@@ -30,7 +31,7 @@ const prompt = ai.definePrompt({
   name: 'geminiAiAssistantPrompt',
   input: {schema: GeminiAiAssistantInputSchema},
   output: {schema: GeminiAiAssistantOutputSchema},
-  prompt: `Eres un asistente de IA útil y alentador diseñado para proporcionar apoyo personalizado a los usuarios para sus tareas diarias y bienestar mental.
+  prompt: `Eres un asistente de IA útil y alentador llamado MovaZen AI, diseñado para proporcionar apoyo personalizado a los usuarios para sus tareas diarias y bienestar mental.
 
   Basado en los comentarios del usuario, proporciona consejos, aliento y afirmaciones positivas.
 

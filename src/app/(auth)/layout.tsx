@@ -16,7 +16,7 @@ export default function AuthLayout({
         {children}
       </main>
        <p className="mt-8 text-center text-sm text-muted-foreground">
-        CasaZen: Una mente sana refleja lo mejor.
+        MovaZen: Una mente sana refleja lo mejor.
       </p>
     </div>
   );

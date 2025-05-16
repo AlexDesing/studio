@@ -33,7 +33,7 @@ export default function AiAssistantPage() {
   useEffect(() => {
     setIsMounted(true);
     setMessages([
-      { id: 'initial', text: "¡Hola! Soy tu asistente CasaZen. ¿Cómo puedo ayudarte a encontrar equilibrio y alegría hoy?", sender: 'ai', timestamp: new Date() }
+      { id: 'initial', text: "¡Hola! Soy tu asistente MovaZen. ¿Cómo puedo ayudarte a encontrar equilibrio y alegría hoy?", sender: 'ai', timestamp: new Date() }
     ]);
   }, []);
 
@@ -106,18 +106,18 @@ export default function AiAssistantPage() {
   }
 
   return (
-    <div className="w-full max-w-3xl px-6 ml-[calc(max(0px,50vw-32rem))] flex flex-col h-[calc(100vh-10rem)]"> {/* MODIFIED for viewport centering */}
+    <div className="w-full max-w-3xl px-6 ml-[calc(max(0px,50vw-32rem))] flex flex-col h-[calc(100vh-10rem)]"> 
       <header className="mb-6 text-center">
          <div className="inline-flex items-center justify-center bg-primary/20 p-3 rounded-full mb-3">
           <Bot className="h-8 w-8 text-primary-foreground" /> 
         </div>
-        <h1 className="text-3xl font-bold text-foreground">Asistente IA CasaZen</h1>
+        <h1 className="text-3xl font-bold text-foreground">Asistente IA MovaZen</h1>
         <p className="text-muted-foreground">Tu guía personal para consejos, ánimo y bienestar integral.</p>
       </header>
 
       <Card className="flex-1 flex flex-col shadow-xl overflow-hidden border-primary/30">
         <CardHeader className="border-b border-primary/20">
-          <CardTitle>Chatea con CasaZen IA</CardTitle>
+          <CardTitle>Chatea con MovaZen IA</CardTitle>
           <CardDescription>Pide consejos, comparte tus sentimientos o busca una chispa de motivación.</CardDescription>
         </CardHeader>
         <CardContent className="flex-1 p-0 overflow-hidden">

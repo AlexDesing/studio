@@ -209,7 +209,7 @@ export default function RoutinesPage() {
 
 
   return (
-    <div className="w-full max-w-5xl px-6 ml-[calc(max(0px,50vw-40rem))]"> {/* MODIFIED for viewport centering */}
+    <div className="w-full max-w-5xl px-6 ml-[calc(max(0px,50vw-35rem))]"> {/* MODIFIED for viewport centering */}
       <header className="mb-10 text-center">
         <div className="inline-flex items-center justify-center bg-primary/20 p-4 rounded-full mb-4">
             <ListChecks className="h-12 w-12 text-primary-foreground" />

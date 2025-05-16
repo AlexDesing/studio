@@ -175,13 +175,13 @@ export default function NotificationsPage() {
 
 
   return (
-    <div className="w-full max-w-5xl px-6 ml-[calc(max(0px,50vw-40rem))]"> {/* MODIFIED for viewport centering */}
+    <div className="w-full max-w-5xl px-6 ml-[calc(max(0px,50vw-40rem))]"> 
       <header className="mb-10 text-center">
          <div className="inline-flex items-center justify-center bg-primary/20 p-4 rounded-full mb-4">
           <Bell className="h-10 w-10 text-primary-foreground" />
         </div>
         <h1 className="text-4xl font-bold text-foreground">Centro de Notificaciones</h1>
-        <p className="text-lg text-muted-foreground mt-2">Gestiona tus alertas y mantente al tanto con mensajes inspiradores de CasaZen.</p>
+        <p className="text-lg text-muted-foreground mt-2">Gestiona tus alertas y mantente al tanto con mensajes inspiradores de MovaZen.</p>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
@@ -224,7 +224,7 @@ export default function NotificationsPage() {
                     </Button>
                 )}
             </div>
-            <CardDescription>Tus últimas actualizaciones e inspiraciones de CasaZen (vista local de ejemplo).</CardDescription>
+            <CardDescription>Tus últimas actualizaciones e inspiraciones de MovaZen (vista local de ejemplo).</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3 max-h-[500px] overflow-y-auto p-4">
             {notifications.length > 0 ? (

@@ -13,7 +13,7 @@ const nunito = Nunito({
 });
 
 export const metadata: Metadata = {
-  title: 'CasaZen - Una mente sana refleja lo mejor',
+  title: 'MovaZen - Una mente sana refleja lo mejor',
   description: 'Tu asistente personal para la gestión del hogar, el bienestar y el amor propio.',
 };
 

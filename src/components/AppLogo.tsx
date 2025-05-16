@@ -10,7 +10,7 @@ const AppLogo: React.FC<AppLogoProps> = ({ className, iconSize = 24 }) => {
   return (
     <div className={`flex items-center gap-2 ${className}`}>
       <Sparkles size={iconSize} className="text-primary" />
-      <span className="text-xl font-semibold text-foreground">CasaZen</span>
+      <span className="text-xl font-semibold text-foreground">MovaZen</span>
     </div>
   );
 };

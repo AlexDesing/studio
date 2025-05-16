@@ -75,7 +75,7 @@ export default function DashboardPage() {
     setIsLoadingRecs(true);
     try {
       // Personalize context if possible, e.g., from user preferences or recent activity
-      const input: DailyRecommendationInput = { userContext: `Usuario ${currentUser.displayName || 'CasaZen'} buscando mejorar bienestar y enfoque.` };
+      const input: DailyRecommendationInput = { userContext: `Usuario ${currentUser.displayName || 'MovaZen'} buscando mejorar bienestar y enfoque.` };
       const result = await getDailyRecommendations(input);
       if (result.recommendations) {
         setRecommendations(result.recommendations);
@@ -120,7 +120,7 @@ export default function DashboardPage() {
             <Sparkles className="h-12 w-12 text-primary-foreground" />
         </div>
         <h1 className="text-4xl font-bold text-foreground">Tu Centro de Bienestar y Productividad</h1>
-        <p className="text-lg text-muted-foreground mt-2">Un vistazo a tu progreso, inspiración y próximos pasos en CasaZen.</p>
+        <p className="text-lg text-muted-foreground mt-2">Un vistazo a tu progreso, inspiración y próximos pasos en MovaZen.</p>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

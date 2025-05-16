@@ -172,7 +172,7 @@ export default function DailyPlannerPage() {
 
   const getColumnActionText = (title: string): string => {
     const parts = title.split(' ');
-    if (parts.length > 1) {
+    if (parts.length > 1 && (parts[0] === '📝' || parts[0] === '⏳' || parts[0] === '✅')) {
       return parts.slice(1).join(' ');
     }
     return title;
@@ -185,7 +185,7 @@ export default function DailyPlannerPage() {
   if (!currentUser && !authLoading) {
      return (
         <div className="container mx-auto text-center py-20">
-            <h1 className="text-2xl font-semibold">Bienvenida a CasaZen</h1>
+            <h1 className="text-2xl font-semibold">Bienvenida a MovaZen</h1>
             <p className="text-muted-foreground mb-4">Por favor, inicia sesión para organizar tu día.</p>
             <Button asChild><Link href="/login">Iniciar Sesión</Link></Button>
         </div>
@@ -196,7 +196,7 @@ export default function DailyPlannerPage() {
   const tasksForSelectedDate = tasks;
 
   return (
-    <div className="container mx-auto">
+    <div className="container mx-auto ml-4">
       <header className="mb-8 flex flex-col sm:flex-row justify-between items-center gap-4">
         <div>
             <h1 className="text-3xl font-bold text-foreground">Planificador Diario</h1>
