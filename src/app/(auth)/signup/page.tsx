@@ -28,7 +28,7 @@ const signUpSchema = z.object({
 type SignUpFormValues = z.infer<typeof signUpSchema>;
 
 export default function SignUpPage() {
-  const router = useRouter(); // Keep router for other potential uses
+  const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
@@ -47,7 +47,7 @@ export default function SignUpPage() {
     try {
       await signUpWithEmail(data.email, data.password, data.displayName);
       toast({ title: '¡Cuenta Creada!', description: 'Bienvenida a MovaZen. Tu cuenta ha sido creada exitosamente.' });
-      // router.push('/'); // Removed: AuthGuard will handle redirection
+      router.push('/app/dashboard'); // Redirect to app dashboard
     } catch (error: any) {
       console.error("Error signing up: ", error);
       toast({
@@ -65,7 +65,7 @@ export default function SignUpPage() {
     try {
       await signInWithGoogle();
       toast({ title: '¡Bienvenida!', description: 'Has iniciado sesión con Google correctamente.' });
-      // router.push('/'); // Removed: AuthGuard will handle redirection
+      router.push('/app/dashboard'); // Redirect to app dashboard
     } catch (error: any) {
       console.error("Error signing in with Google: ", error);
       toast({

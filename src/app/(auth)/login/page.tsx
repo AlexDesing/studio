@@ -26,7 +26,7 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
-  const router = useRouter(); // Keep router for other potential uses, but not for primary redirect after login
+  const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
@@ -44,7 +44,7 @@ export default function LoginPage() {
     try {
       await signInWithEmail(data.email, data.password);
       toast({ title: '¡Bienvenida de nuevo!', description: 'Has iniciado sesión correctamente.' });
-      // router.push('/'); // Removed: AuthGuard will handle redirection
+      router.push('/app/dashboard'); // Redirect to app dashboard
     } catch (error: any) {
       console.error("Error signing in: ", error);
       toast({
@@ -62,7 +62,7 @@ export default function LoginPage() {
     try {
       await signInWithGoogle();
       toast({ title: '¡Bienvenida!', description: 'Has iniciado sesión con Google correctamente.' });
-      // router.push('/'); // Removed: AuthGuard will handle redirection
+      router.push('/app/dashboard'); // Redirect to app dashboard
     } catch (error: any) {
       console.error("Error signing in with Google: ", error);
       toast({

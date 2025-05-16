@@ -1,28 +1,27 @@
 
 import type { NavItem, Task, Tip, Routine, Badge } from '@/lib/types';
-import { CalendarDays, Lightbulb, Sparkles, MessageCircle, Bell, Timer, ListChecks, LayoutDashboard, Settings, UserCircle, LogIn, LogOut } from 'lucide-react'; // Added Settings, UserCircle, LogIn, LogOut
+import { CalendarDays, Lightbulb, Sparkles, MessageCircle, Bell, Timer, ListChecks, LayoutDashboard, Settings } from 'lucide-react';
 
+// NAV_ITEMS_LOGGED_IN now uses /app prefix
 export const NAV_ITEMS_LOGGED_IN: NavItem[] = [
-  { href: '/', label: 'Planificador Diario', icon: CalendarDays },
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/routines', label: 'Rutinas', icon: ListChecks },
-  { href: '/pomodoro', label: 'Temporizador Pomodoro', icon: Timer },
-  { href: '/tips', label: 'Consejos Diarios', icon: Lightbulb },
-  { href: '/affirmations', label: 'Afirmaciones', icon: Sparkles },
-  { href: '/assistant', label: 'Asistente IA', icon: MessageCircle },
-  { href: '/notifications', label: 'Notificaciones', icon: Bell },
-  // Settings will be in footer for logged in users, or could be here too
+  { href: '/app/planner', label: 'Planificador Diario', icon: CalendarDays, match: (pathname) => pathname.startsWith('/app/planner') || pathname === '/app' },
+  { href: '/app/dashboard', label: 'Dashboard', icon: LayoutDashboard, match: (pathname) => pathname.startsWith('/app/dashboard') },
+  { href: '/app/routines', label: 'Rutinas', icon: ListChecks, match: (pathname) => pathname.startsWith('/app/routines') },
+  { href: '/app/pomodoro', label: 'Pomodoro', icon: Timer, match: (pathname) => pathname.startsWith('/app/pomodoro') },
+  { href: '/app/tips', label: 'Consejos Diarios', icon: Lightbulb, match: (pathname) => pathname.startsWith('/app/tips') },
+  { href: '/app/affirmations', label: 'Afirmaciones', icon: Sparkles, match: (pathname) => pathname.startsWith('/app/affirmations') },
+  { href: '/app/assistant', label: 'Asistente IA', icon: MessageCircle, match: (pathname) => pathname.startsWith('/app/assistant') },
+  { href: '/app/notifications', label: 'Notificaciones', icon: Bell, match: (pathname) => pathname.startsWith('/app/notifications') },
 ];
 
-export const NAV_ITEMS: NavItem[] = NAV_ITEMS_LOGGED_IN; // Default to logged in, AuthGuard handles redirection
+// Updated to include match functions for better active state detection with /app prefix
+export const NAV_ITEMS: NavItem[] = NAV_ITEMS_LOGGED_IN;
 
-// MOCK_TASKS can be removed or used as initial data for a new user if desired.
-// For Firestore, tasks will be fetched per user.
 export const MOCK_TASKS_FOR_NEW_USER: Omit<Task, 'id' | 'userId' | 'createdAt' | 'updatedAt'>[] = [
   { title: 'Meditación Matutina', time: '7:00 AM', category: 'Bienestar', priority: 'High', status: 'PENDIENTE', date: new Date() },
   { title: 'Planificar comidas de la semana', time: '9:00 AM', category: 'Hogar', priority: 'Medium', status: 'PENDIENTE', date: new Date() },
 ];
-export const MOCK_TASKS: Task[] = []; // Deprecated, data comes from Firestore
+export const MOCK_TASKS: Task[] = [];
 
 
 export const MOCK_TIPS: { [key: string]: Tip[] } = {
@@ -54,8 +53,6 @@ export const MOOD_OPTIONS = [
   { value: 'agradecida', label: '🙏 Agradecida' },
 ];
 
-// MOCK_ROUTINES can be templates or initial data for new users.
-// For Firestore, routines will be fetched per user.
 export const MOCK_ROUTINES_TEMPLATES: Omit<Routine, 'id' | 'userId' | 'createdAt' | 'updatedAt'>[] = [
   {
     title: 'Mañana Energizante',
@@ -72,7 +69,7 @@ export const MOCK_ROUTINES_TEMPLATES: Omit<Routine, 'id' | 'userId' | 'createdAt
     steps: ['Desconecta: Aléjate de las pantallas.', 'Respira: 3 respiraciones profundas y lentas.', 'Hidrátate: Bebe un poco de agua o té.', 'Estírate: Movimientos suaves de cuello y hombros.']
   },
 ];
-export const MOCK_ROUTINES: Routine[] = []; // Deprecated
+export const MOCK_ROUTINES: Routine[] = [];
 
 
 export const MOCK_BADGES: Badge[] = [

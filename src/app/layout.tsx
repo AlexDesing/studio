@@ -2,10 +2,10 @@
 import type { Metadata } from 'next';
 import { Nunito } from 'next/font/google';
 import './globals.css';
-import { SidebarProvider } from '@/components/ui/sidebar';
+// SidebarProvider is removed from here, will be in /app/app/layout.tsx
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/contexts/AuthContext';
-import AuthGuard from '@/components/AuthGuard'; // Import AuthGuard
+import AuthGuard from '@/components/AuthGuard';
 
 const nunito = Nunito({
   subsets: ['latin'],
@@ -26,12 +26,10 @@ export default function RootLayout({
     <html lang="es" suppressHydrationWarning>
       <body className={`${nunito.variable} antialiased font-sans`}>
         <AuthProvider>
-          <AuthGuard> {/* AuthGuard envuelve a los children aquí */}
-            <SidebarProvider defaultOpen={true}>
-              {children}
-            </SidebarProvider>
-            <Toaster />
+          <AuthGuard> {/* AuthGuard wraps children here at the root level */}
+            {children}
           </AuthGuard>
+          <Toaster />
         </AuthProvider>
       </body>
     </html>
