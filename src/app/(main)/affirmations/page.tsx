@@ -31,6 +31,7 @@ import { Input } from '@/components/ui/input';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Timestamp } from 'firebase/firestore';
+import Link from 'next/link';
 
 export default function AffirmationsPage() {
   const { currentUser, loading: authLoading } = useAuth();
@@ -224,7 +225,7 @@ export default function AffirmationsPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-2xl space-y-12">
+    <div className="mx-auto w-full max-w-5xl space-y-12">
       {/* Affirmation Generator Section */}
       <section>
         <header className="mb-8 text-center">

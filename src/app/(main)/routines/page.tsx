@@ -210,7 +210,7 @@ export default function RoutinesPage() {
 
 
   return (
-    <div className="mx-auto w-full max-w-2xl">
+    <div className="mx-auto w-full max-w-5xl">
       <header className="mb-10 text-center">
         <div className="inline-flex items-center justify-center bg-primary/20 p-4 rounded-full mb-4">
             <ListChecks className="h-12 w-12 text-primary-foreground" />

@@ -15,6 +15,7 @@ import { updateUserProfileDocument, type UserProfileData } from '@/lib/firebase/
 import { uploadUserAvatar } from '@/lib/firebase/storage';
 import { auth } from '@/lib/firebase/config'; 
 import { updateUserProfile } from '@/lib/firebase/auth'; 
+import Link from 'next/link';
 
 export default function SettingsPage() {
   const { currentUser, loading: authLoading } = useAuth();
@@ -132,11 +133,17 @@ export default function SettingsPage() {
   }
 
   if (!currentUser) {
-    return <div className="mx-auto w-full max-w-2xl text-center py-10">Por favor, inicia sesión para ver tu configuración.</div>;
+    return (
+        <div className="mx-auto w-full max-w-2xl text-center py-20">
+            <h1 className="text-2xl font-semibold">Configuración</h1>
+            <p className="text-muted-foreground mb-4">Inicia sesión para acceder a tu configuración.</p>
+            <Button asChild><Link href="/login">Iniciar Sesión</Link></Button>
+        </div>
+    );
   }
 
   return (
-    <div className="mx-auto w-full max-w-2xl space-y-10">
+    <div className="mx-auto w-full max-w-5xl space-y-10">
       <header className="text-center">
         <h1 className="text-3xl font-bold text-foreground">Configuración de la Cuenta</h1>
         <p className="text-muted-foreground">Personaliza tu experiencia en CasaZen.</p>
