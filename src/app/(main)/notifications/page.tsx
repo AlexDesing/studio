@@ -3,6 +3,7 @@
 
 import type React from 'react';
 import { useState, useEffect } from 'react';
+import Link from 'next/link'; // Import Link
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -59,6 +60,15 @@ const initialNotifications: NotificationItem[] = [
     read: true,
     icon: Sparkles,
     category: 'Motivación'
+  },
+  { 
+    id: '3', 
+    title: '💡 Consejo de Bienestar', 
+    message: 'Toma una pausa de 5 minutos para estirarte y relajar tu mente.', 
+    timestamp: new Date(Date.now() - 14400000), 
+    read: true,
+    icon: Lightbulb,
+    category: 'Consejo' 
   },
 ];
 
@@ -166,7 +176,7 @@ export default function NotificationsPage() {
 
 
   return (
-    <div className="container mx-auto max-w-4xl">
+    <div className="container mx-auto max-w-3xl"> {/* Changed max-w-4xl to max-w-3xl */}
       <header className="mb-10 text-center">
          <div className="inline-flex items-center justify-center bg-primary/20 p-4 rounded-full mb-4">
           <Bell className="h-10 w-10 text-primary-foreground" />

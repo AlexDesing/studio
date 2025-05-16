@@ -224,7 +224,7 @@ export default function AffirmationsPage() {
   }
 
   return (
-    <div className="container mx-auto max-w-4xl space-y-12">
+    <div className="container mx-auto max-w-3xl space-y-12"> {/* Changed max-w-4xl to max-w-3xl */}
       {/* Affirmation Generator Section */}
       <section>
         <header className="mb-8 text-center">
@@ -425,7 +425,7 @@ export default function AffirmationsPage() {
                 </div>
                 {visionItemImageUrl && visionItemImageUrl.startsWith('https://') && (
                     <div className="my-2 flex justify-center">
-                        <Image src={visionItemImageUrl} alt="Previsualización" width={200} height={150} className="rounded-md object-cover" onError={(e) => e.currentTarget.style.display='none'}/>
+                        <Image src={visionItemImageUrl} alt="Previsualización" width={200} height={150} className="rounded-md object-cover mx-auto" onError={(e) => e.currentTarget.style.display='none'}/>
                     </div>
                 )}
                 <div className="space-y-1">
@@ -446,7 +446,3 @@ export default function AffirmationsPage() {
     </div>
   );
 }
-
-    
-
-    
