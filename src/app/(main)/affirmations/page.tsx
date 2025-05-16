@@ -224,7 +224,7 @@ export default function AffirmationsPage() {
   }
 
   return (
-    <div className="container mx-auto max-w-3xl space-y-12"> {/* Changed max-w-4xl to max-w-3xl */}
+    <div className="container mx-auto max-w-2xl space-y-12">
       {/* Affirmation Generator Section */}
       <section>
         <header className="mb-8 text-center">
@@ -446,3 +446,5 @@ export default function AffirmationsPage() {
     </div>
   );
 }
+
+    

@@ -176,7 +176,7 @@ export default function NotificationsPage() {
 
 
   return (
-    <div className="container mx-auto max-w-3xl"> {/* Changed max-w-4xl to max-w-3xl */}
+    <div className="container mx-auto max-w-2xl">
       <header className="mb-10 text-center">
          <div className="inline-flex items-center justify-center bg-primary/20 p-4 rounded-full mb-4">
           <Bell className="h-10 w-10 text-primary-foreground" />
@@ -263,3 +263,5 @@ export default function NotificationsPage() {
     </div>
   );
 }
+
+    
