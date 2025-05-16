@@ -68,6 +68,8 @@ export interface Routine {
   iconName: keyof typeof import('lucide-react'); // Store icon name to re-render
   steps: string[];
   category: string; // e.g., "Mañana", "Productividad", "Relax"
+  startDate?: Date | Timestamp; // Optional start date for the routine
+  startTime?: string; // Optional start time (e.g., "09:00") for the routine
   createdAt?: Timestamp;
   updatedAt?: Timestamp;
 }

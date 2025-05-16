@@ -5,8 +5,7 @@ import type React from 'react';
 import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, ListChecks, Zap, Smile, Coffee, PlusCircle, Edit3, Trash2, Loader2 } from 'lucide-react';
-import { MOCK_ROUTINES } from '@/lib/constants'; // Keep for initial structure if needed, or remove if fully dynamic
+import { CheckCircle, ListChecks, Zap, Smile, Coffee, PlusCircle, Edit3, Trash2, Loader2, CalendarDays, Clock } from 'lucide-react';
 import type { Routine } from '@/lib/types';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useAuth } from '@/contexts/AuthContext';
@@ -16,7 +15,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import * as LucideIcons from 'lucide-react'; // Import all for dynamic icon selection
+import * as LucideIcons from 'lucide-react'; 
+import { format, parseISO } from 'date-fns';
+import { es } from 'date-fns/locale';
+import { Timestamp } from 'firebase/firestore';
 
 
 const iconOptions = Object.keys(LucideIcons).filter(key => key !== 'createLucideIcon' && key !== 'icons' && typeof LucideIcons[key as keyof typeof LucideIcons] === 'object');
@@ -35,6 +37,8 @@ export default function RoutinesPage() {
   const [routineCategory, setRoutineCategory] = useState('');
   const [routineSteps, setRoutineSteps] = useState<string[]>(['']);
   const [routineIconName, setRoutineIconName] = useState<keyof typeof LucideIcons>('ListChecks');
+  const [routineStartDate, setRoutineStartDate] = useState<string>(''); // Store as string for input 'yyyy-MM-dd'
+  const [routineStartTime, setRoutineStartTime] = useState<string>(''); // Store as string for input 'HH:mm'
 
 
   useEffect(() => {
@@ -58,6 +62,8 @@ export default function RoutinesPage() {
     setRoutineCategory('');
     setRoutineSteps(['']);
     setRoutineIconName('ListChecks');
+    setRoutineStartDate('');
+    setRoutineStartTime('');
     setIsDialogOpen(true);
   };
 
@@ -68,6 +74,14 @@ export default function RoutinesPage() {
     setRoutineCategory(routine.category);
     setRoutineSteps(routine.steps.length > 0 ? routine.steps : ['']);
     setRoutineIconName(routine.iconName || 'ListChecks');
+    // Format Date and Timestamp for input fields
+    if (routine.startDate) {
+      const dateObj = routine.startDate instanceof Timestamp ? routine.startDate.toDate() : new Date(routine.startDate);
+      setRoutineStartDate(format(dateObj, 'yyyy-MM-dd'));
+    } else {
+      setRoutineStartDate('');
+    }
+    setRoutineStartTime(routine.startTime || '');
     setIsDialogOpen(true);
   };
 
@@ -99,7 +113,7 @@ export default function RoutinesPage() {
         return;
     }
 
-    const routineData = {
+    const routineData: Partial<Routine> = { // Use Partial<Routine> for flexibility
       title: routineTitle.trim(),
       description: routineDescription.trim(),
       category: routineCategory.trim(),
@@ -107,9 +121,26 @@ export default function RoutinesPage() {
       iconName: routineIconName,
     };
 
+    if (routineStartDate) {
+      // Ensure correct date parsing, considering potential timezone issues if time is also set.
+      // For date input 'yyyy-MM-dd', parseISO will handle it correctly.
+      // When combining with time, it's best to construct the date in a way that represents local time.
+      // Adding T00:00:00 makes it local to the user's browser timezone interpretation on that date.
+      routineData.startDate = new Date(routineStartDate + 'T00:00:00');
+    } else {
+      routineData.startDate = undefined; // Explicitly undefined if not set
+    }
+    
+    if (routineStartTime) {
+      routineData.startTime = routineStartTime;
+    } else {
+      routineData.startTime = undefined; // Explicitly undefined if not set
+    }
+
+
     try {
       if (editingRoutine) {
-        await updateRoutine(currentUser.uid, editingRoutine.id, routineData);
+        await updateRoutine(currentUser.uid, editingRoutine.id, routineData as Omit<Routine, 'id' | 'userId' | 'createdAt' | 'updatedAt'>);
         toast({ title: 'Rutina Actualizada'});
       } else {
         await createRoutine(currentUser.uid, routineData as Omit<Routine, 'id' | 'createdAt' | 'updatedAt' | 'userId'>);
@@ -184,6 +215,15 @@ export default function RoutinesPage() {
                   <div className="flex-grow text-left">
                     <CardTitle className="text-xl">{routine.title}</CardTitle>
                     <CardDescription className="text-sm text-muted-foreground">{routine.description}</CardDescription>
+                    {routine.startDate && (
+                        <div className="text-xs text-muted-foreground mt-1 flex items-center">
+                            <CalendarDays className="mr-1.5 h-3.5 w-3.5"/> 
+                            Programada para: {format(routine.startDate instanceof Timestamp ? routine.startDate.toDate() : new Date(routine.startDate), "PPP", {locale: es})}
+                            {routine.startTime && (
+                                <span className="ml-2 flex items-center"><Clock className="mr-1 h-3.5 w-3.5"/> {routine.startTime}</span>
+                            )}
+                        </div>
+                    )}
                   </div>
                   <div className="flex space-x-2">
                      <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); openEditDialog(routine);}} className="hover:bg-accent/50">
@@ -256,7 +296,17 @@ export default function RoutinesPage() {
                         ))}
                     </select>
                 </div>
-                <Label className="font-semibold">Pasos de la Rutina:</Label>
+
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="routine-start-date" className="text-right">Fecha Inicio (Opcional)</Label>
+                  <Input id="routine-start-date" type="date" value={routineStartDate} onChange={(e) => setRoutineStartDate(e.target.value)} className="col-span-3"/>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="routine-start-time" className="text-right">Hora Inicio (Opcional)</Label>
+                  <Input id="routine-start-time" type="time" value={routineStartTime} onChange={(e) => setRoutineStartTime(e.target.value)} className="col-span-3"/>
+                </div>
+
+                <Label className="font-semibold mt-2">Pasos de la Rutina:</Label>
                 {routineSteps.map((step, index) => (
                     <div key={index} className="flex items-center gap-2">
                         <Input value={step} onChange={(e) => handleStepChange(index, e.target.value)} placeholder={`Paso ${index + 1}`} className="flex-grow"/>
@@ -279,4 +329,3 @@ export default function RoutinesPage() {
     </div>
   );
 }
-
