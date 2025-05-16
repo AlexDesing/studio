@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from "@/components/ui/card";
 import { Label } from '@/components/ui/label';
-import { Loader2, Sparkles, Wand2, PlusCircle, ImagePlus, Heart, Smile, Zap, Trash2, Edit3, Bookmark } from 'lucide-react';
+import { Loader2, Sparkles, Wand2, PlusCircle, ImagePlus, Heart, Smile, Zap, Trash2, Edit3, Bookmark, BookOpen, ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Separator } from '@/components/ui/separator';
 import { generateAffirmation, type GenerateAffirmationInput } from '@/ai/flows/affirmation-generator';
@@ -25,20 +25,12 @@ import {
 } from '@/lib/firebase/firestore/visionBoardItems';
 import { 
   createSavedAffirmation,
-  // onSavedAffirmationsSnapshot, // If you want to display saved affirmations too
-  // deleteSavedAffirmation 
 } from '@/lib/firebase/firestore/userAffirmations';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-// import { uploadUserVisionBoardImage } from '@/lib/firebase/storage'; // Assuming a similar function to uploadUserAvatar exists or is created
-
-// Helper for image uploads if direct upload to storage is implemented for vision board
-// For now, we'll use placeholder URLs for simplicity of Firebase integration scope
-// const handleImageUpload = async (file: File, userId: string): Promise<string> => {
-//   // Example: return await uploadUserVisionBoardImage(userId, file);
-//   return URL.createObjectURL(file); // Placeholder
-// };
-
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
+import { Timestamp } from 'firebase/firestore';
 
 export default function AffirmationsPage() {
   const { currentUser, loading: authLoading } = useAuth();
@@ -50,6 +42,7 @@ export default function AffirmationsPage() {
   
   const [visionBoardItems, setVisionBoardItems] = useState<VisionBoardItem[]>([]);
   const [isLoadingVisionBoard, setIsLoadingVisionBoard] = useState(true);
+  const [currentVisionPageIndex, setCurrentVisionPageIndex] = useState(0);
   
   const [isVisionBoardDialogOpen, setIsVisionBoardDialogOpen] = useState(false);
   const [editingVisionItem, setEditingVisionItem] = useState<VisionBoardItem | null>(null);
@@ -57,8 +50,6 @@ export default function AffirmationsPage() {
   const [visionItemDescription, setVisionItemDescription] = useState('');
   const [visionItemImageUrl, setVisionItemImageUrl] = useState('');
   const [visionItemImageHint, setVisionItemImageHint] = useState('');
-  // const [visionItemImageFile, setVisionItemImageFile] = useState<File | null>(null);
-
 
   const { toast } = useToast();
 
@@ -67,6 +58,7 @@ export default function AffirmationsPage() {
       setIsLoadingVisionBoard(true);
       const unsubscribe = onVisionBoardItemsSnapshot(currentUser.uid, (items) => {
         setVisionBoardItems(items);
+        setCurrentVisionPageIndex(0); // Reset to first page when items change
         setIsLoadingVisionBoard(false);
       });
       return () => unsubscribe();
@@ -122,7 +114,7 @@ export default function AffirmationsPage() {
         text: generatedAffirmation,
         mood: mood,
         needs: needs,
-        isFavorite: false, // Default, can be changed later
+        isFavorite: false, 
       });
       toast({title: "Afirmación Guardada", description: "Tu afirmación ha sido guardada en tu colección."});
     } catch (error: any) {
@@ -136,32 +128,24 @@ export default function AffirmationsPage() {
     setEditingVisionItem(null);
     setVisionItemTitle('');
     setVisionItemDescription('');
-    setVisionItemImageUrl('https://placehold.co/400x300.png'); // Default placeholder
+    setVisionItemImageUrl('https://placehold.co/600x400.png'); 
     setVisionItemImageHint('');
-    // setVisionItemImageFile(null);
     setIsVisionBoardDialogOpen(true);
   };
 
-  const openEditVisionItemDialog = (item: VisionBoardItem) => {
+  const openEditVisionItemDialog = (item: VisionBoardItem | undefined) => {
+    if (!item) return;
     setEditingVisionItem(item);
     setVisionItemTitle(item.title);
     setVisionItemDescription(item.description || '');
     setVisionItemImageUrl(item.imageUrl);
     setVisionItemImageHint(item.imageHint);
-    // setVisionItemImageFile(null);
     setIsVisionBoardDialogOpen(true);
   };
   
   const handleVisionItemImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // For now, we'll just allow direct URL input or use placeholder
-    // if (e.target.files && e.target.files[0]) {
-    //   setVisionItemImageFile(e.target.files[0]);
-    //   setVisionItemImageUrl(URL.createObjectURL(e.target.files[0]));
-    // }
-    // If using direct URL input:
     setVisionItemImageUrl(e.target.value);
   };
-
 
   const handleSaveVisionBoardItem = async () => {
     if (!currentUser || !visionItemTitle.trim() || !visionItemImageUrl.trim()) {
@@ -169,20 +153,10 @@ export default function AffirmationsPage() {
         return;
     }
     
-    // let finalImageUrl = visionItemImageUrl;
-    // if (visionItemImageFile && currentUser) { // Prioritize uploaded file
-    //   try {
-    //     // finalImageUrl = await handleImageUpload(visionItemImageFile, currentUser.uid); // Implement this
-    //   } catch (error) {
-    //     toast({variant: "destructive", title: "Error de Carga", description: "No se pudo subir la imagen."});
-    //     return;
-    //   }
-    // }
-    
     const itemData = {
         title: visionItemTitle.trim(),
         description: visionItemDescription.trim(),
-        imageUrl: visionItemImageUrl, // Use finalImageUrl if implementing upload
+        imageUrl: visionItemImageUrl, 
         imageHint: visionItemImageHint.trim(),
     };
 
@@ -201,17 +175,34 @@ export default function AffirmationsPage() {
     }
   };
 
-  const handleDeleteVisionBoardItem = async (itemId: string) => {
-    if (!currentUser) return;
-    try {
-        await deleteVisionBoardItem(currentUser.uid, itemId);
-        toast({title: "Elemento Eliminado"});
-    } catch (error: any) {
-        console.error("Error deleting vision board item: ", error);
-        toast({variant: "destructive", title: "Error al Eliminar", description: error.message});
+  const handleDeleteVisionBoardItem = async (itemId: string | undefined) => {
+    if (!currentUser || !itemId) return;
+    if (confirm('¿Estás segura de que quieres eliminar esta inspiración de tu tablero?')) {
+        try {
+            await deleteVisionBoardItem(currentUser.uid, itemId);
+            toast({title: "Elemento Eliminado"});
+            // Adjust current page if the deleted item was the last one and not the only one
+            if (currentVisionPageIndex >= visionBoardItems.length - 1 && visionBoardItems.length > 1) {
+                setCurrentVisionPageIndex(Math.max(0, currentVisionPageIndex - 1));
+            } else if (visionBoardItems.length === 1) { // If it was the only item
+                setCurrentVisionPageIndex(0); // Reset or handle empty state
+            }
+        } catch (error: any) {
+            console.error("Error deleting vision board item: ", error);
+            toast({variant: "destructive", title: "Error al Eliminar", description: error.message});
+        }
     }
   };
 
+  const currentVisionItem = visionBoardItems.length > 0 ? visionBoardItems[currentVisionPageIndex] : undefined;
+
+  const goToPreviousPage = () => {
+    setCurrentVisionPageIndex(prev => Math.max(0, prev - 1));
+  };
+
+  const goToNextPage = () => {
+    setCurrentVisionPageIndex(prev => Math.min(visionBoardItems.length - 1, prev + 1));
+  };
 
   if (authLoading) {
     return <div className="flex justify-center items-center h-screen"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>;
@@ -225,7 +216,6 @@ export default function AffirmationsPage() {
         </div>
     );
   }
-
 
   return (
     <div className="container mx-auto max-w-4xl space-y-12">
@@ -330,78 +320,90 @@ export default function AffirmationsPage() {
 
       <Separator className="my-16" />
 
-      {/* Vision Board Section */}
+      {/* Vision Board "Book" Section */}
       <section>
         <header className="mb-10 text-center">
           <div className="inline-flex items-center justify-center bg-secondary/30 p-4 rounded-full mb-5">
-            <ImagePlus className="h-12 w-12 text-secondary-foreground" />
+            <BookOpen className="h-12 w-12 text-secondary-foreground" />
           </div>
-          <h2 className="text-4xl font-bold text-foreground">Mi Tablero de Visión</h2>
-          <p className="text-lg text-muted-foreground mt-2">Un espacio sagrado para visualizar tus sueños y aspiraciones más profundas.</p>
+          <h2 className="text-4xl font-bold text-foreground">Mi Diario de Visiones</h2>
+          <p className="text-lg text-muted-foreground mt-2">Un espacio sagrado para plasmar y revisitar tus sueños más profundos.</p>
+          <Button variant="outline" className="mt-6 bg-secondary hover:bg-secondary/80 text-secondary-foreground" onClick={openAddVisionItemDialog}>
+            <PlusCircle className="mr-2 h-5 w-5" /> Añadir Nueva Visión
+          </Button>
         </header>
         
-        <Card className="shadow-xl bg-card/80 backdrop-blur-sm border-secondary">
-           <CardHeader className="flex flex-row justify-between items-center p-6">
-            <div>
-              <CardTitle className="text-2xl">Galería de Inspiración</CardTitle>
-              <CardDescription>Visualiza tus metas y sueños. ¡Hazlos realidad!</CardDescription>
+        {isLoadingVisionBoard ? (
+          <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary"/></div>
+        ) : visionBoardItems.length > 0 && currentVisionItem ? (
+          <Card className="shadow-2xl bg-card/90 backdrop-blur-sm border-secondary/50 rounded-xl overflow-hidden relative pb-16 min-h-[600px] flex flex-col">
+            {/* Page Content */}
+            <div className="flex-grow p-6 md:p-10 bg-gradient-to-br from-background to-card/50 relative">
+                {/* Page Curl Effect (decorative) */}
+                <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-transparent via-transparent to-secondary/20 opacity-50 pointer-events-none" style={{ clipPath: 'polygon(100% 0, 0 0, 100% 100%)' }}></div>
+                
+                <div className="relative w-full h-60 md:h-80 mb-6 rounded-lg overflow-hidden shadow-lg mx-auto max-w-md">
+                  <Image
+                    src={currentVisionItem.imageUrl}
+                    alt={currentVisionItem.title}
+                    layout="fill"
+                    objectFit="cover"
+                    className="transition-transform duration-500 hover:scale-105"
+                    data-ai-hint={currentVisionItem.imageHint || "vision board image"}
+                    onError={(e) => e.currentTarget.src = 'https://placehold.co/600x400.png?text=Error+al+cargar'}
+                  />
+                </div>
+                <div className="text-center">
+                    <h3 className="font-semibold text-3xl text-foreground mb-2">{currentVisionItem.title}</h3>
+                    {currentVisionItem.description && <p className="text-md text-muted-foreground mb-4 italic max-w-xl mx-auto">{currentVisionItem.description}</p>}
+                    {currentVisionItem.createdAt && (
+                        <div className="flex items-center justify-center text-sm text-muted-foreground/80 mt-4">
+                            <CalendarDays className="mr-2 h-4 w-4" />
+                            Agregado el: {currentVisionItem.createdAt instanceof Timestamp ? format(currentVisionItem.createdAt.toDate(), "PPP", { locale: es }) : format(new Date(currentVisionItem.createdAt), "PPP", { locale: es })}
+                        </div>
+                    )}
+                </div>
+                <div className="absolute top-4 right-4 flex space-x-2">
+                    <Button variant="outline" size="icon" className="h-9 w-9 bg-background/70 hover:bg-accent" onClick={() => openEditVisionItemDialog(currentVisionItem)}>
+                        <Edit3 size={18} />
+                        <span className="sr-only">Editar Visión</span>
+                    </Button>
+                    <Button variant="destructive" size="icon" className="h-9 w-9 bg-destructive/80 hover:bg-destructive" onClick={() => handleDeleteVisionBoardItem(currentVisionItem.id)}>
+                        <Trash2 size={18} />
+                         <span className="sr-only">Eliminar Visión</span>
+                    </Button>
+                </div>
             </div>
-            <Button variant="outline" className="bg-secondary hover:bg-secondary/80 text-secondary-foreground" onClick={openAddVisionItemDialog}>
-              <PlusCircle className="mr-2 h-5 w-5" /> Añadir Inspiración
-            </Button>
-          </CardHeader>
-          <CardContent className="p-6">
-            {isLoadingVisionBoard ? (
-                <div className="flex justify-center items-center h-40"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>
-            ) : visionBoardItems.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                {visionBoardItems.map(item => (
-                  <Card key={item.id} className="overflow-hidden group hover:shadow-2xl transition-all duration-300 ease-in-out transform hover:scale-105 border-transparent hover:border-primary">
-                    <div className="relative w-full h-60">
-                      <Image
-                        src={item.imageUrl}
-                        alt={item.title}
-                        layout="fill"
-                        objectFit="cover"
-                        className="transition-transform duration-500 group-hover:scale-110"
-                        data-ai-hint={item.imageHint}
-                        onError={(e) => e.currentTarget.src = 'https://placehold.co/400x300.png?text=Error+al+cargar'}
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent opacity-70 group-hover:opacity-90 transition-opacity duration-300"></div>
-                       <div className="absolute top-3 right-3 space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <Button variant="ghost" size="icon" className="h-8 w-8 bg-primary/80 text-primary-foreground hover:bg-primary" onClick={() => openEditVisionItemDialog(item)}>
-                            <Edit3 size={16} />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 bg-destructive/80 text-destructive-foreground hover:bg-destructive" onClick={() => handleDeleteVisionBoardItem(item.id)}>
-                            <Trash2 size={16} />
-                        </Button>
-                      </div>
-                    </div>
-                    <CardFooter className="p-5 bg-background/90 backdrop-blur-sm">
-                      <div>
-                        <h3 className="font-semibold text-xl text-foreground mb-1">{item.title}</h3>
-                        {item.description && <p className="text-sm text-muted-foreground">{item.description}</p>}
-                      </div>
-                    </CardFooter>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12 text-muted-foreground">
-                <ImagePlus className="mx-auto h-16 w-16 mb-4 text-secondary-foreground" />
-                <p className="text-xl mb-1">Tu tablero de visión está esperando tus sueños.</p>
-                <p>¡Añade tu primera inspiración para empezar a manifestar!</p>
+
+            {/* Book Navigation */}
+            {visionBoardItems.length > 1 && (
+              <div className="absolute bottom-0 left-0 right-0 flex justify-between items-center p-4 bg-card-foreground/5 border-t border-secondary/30">
+                <Button variant="ghost" onClick={goToPreviousPage} disabled={currentVisionPageIndex === 0} className="text-secondary-foreground hover:bg-secondary/20">
+                  <ChevronLeft className="mr-2 h-5 w-5" /> Anterior
+                </Button>
+                <p className="text-sm text-muted-foreground">
+                  Página {currentVisionPageIndex + 1} de {visionBoardItems.length}
+                </p>
+                <Button variant="ghost" onClick={goToNextPage} disabled={currentVisionPageIndex === visionBoardItems.length - 1} className="text-secondary-foreground hover:bg-secondary/20">
+                  Siguiente <ChevronRight className="ml-2 h-5 w-5" />
+                </Button>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </Card>
+        ) : (
+          <div className="text-center py-16 text-muted-foreground bg-card/50 rounded-lg shadow-md">
+            <BookOpen className="mx-auto h-20 w-20 mb-6 text-secondary-foreground/70" />
+            <p className="text-2xl mb-2">Tu diario de visiones está esperando.</p>
+            <p className="text-lg">¡Añade tu primera visión para empezar a manifestar tus sueños!</p>
+          </div>
+        )}
       </section>
 
       {/* Vision Board Item Dialog */}
       <Dialog open={isVisionBoardDialogOpen} onOpenChange={setIsVisionBoardDialogOpen}>
             <DialogContent className="sm:max-w-[525px]">
               <DialogHeader>
-                <DialogTitle>{editingVisionItem ? 'Editar Inspiración' : 'Añadir Nueva Inspiración'}</DialogTitle>
+                <DialogTitle>{editingVisionItem ? 'Editar Visión' : 'Añadir Nueva Visión'}</DialogTitle>
               </DialogHeader>
               <div className="grid gap-4 py-4">
                 <div className="space-y-1">
@@ -411,12 +413,10 @@ export default function AffirmationsPage() {
                  <div className="space-y-1">
                   <Label htmlFor="vb-image-url">URL de la Imagen</Label>
                   <Input id="vb-image-url" value={visionItemImageUrl} onChange={handleVisionItemImageChange} placeholder="https://placehold.co/600x400.png"/>
-                  {/* <Label htmlFor="vb-image-file" className="text-sm text-muted-foreground mt-1 block">O sube un archivo:</Label>
-                  <Input id="vb-image-file" type="file" accept="image/*" onChange={handleVisionItemImageChange} /> */}
                 </div>
-                {visionItemImageUrl && (
-                    <div className="my-2">
-                        <Image src={visionItemImageUrl} alt="Previsualización" width={200} height={150} className="rounded-md object-cover mx-auto" onError={(e) => e.currentTarget.style.display='none'}/>
+                {visionItemImageUrl && visionItemImageUrl.startsWith('https://') && (
+                    <div className="my-2 flex justify-center">
+                        <Image src={visionItemImageUrl} alt="Previsualización" width={200} height={150} className="rounded-md object-cover" onError={(e) => e.currentTarget.style.display='none'}/>
                     </div>
                 )}
                 <div className="space-y-1">
@@ -430,10 +430,12 @@ export default function AffirmationsPage() {
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setIsVisionBoardDialogOpen(false)}>Cancelar</Button>
-                <Button onClick={handleSaveVisionBoardItem}>{editingVisionItem ? 'Guardar Cambios' : 'Añadir Inspiración'}</Button>
+                <Button onClick={handleSaveVisionBoardItem}>{editingVisionItem ? 'Guardar Cambios' : 'Añadir Visión'}</Button>
               </DialogFooter>
             </DialogContent>
         </Dialog>
     </div>
   );
 }
+
+    
