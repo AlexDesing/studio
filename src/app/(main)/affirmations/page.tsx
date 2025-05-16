@@ -215,7 +215,7 @@ export default function AffirmationsPage() {
   }
   if (!currentUser && !authLoading) {
      return (
-        <div className="container mx-auto text-center py-20">
+        <div className="mx-auto w-full max-w-2xl text-center py-20">
             <h1 className="text-2xl font-semibold">Afirmaciones y Tablero de Visión</h1>
             <p className="text-muted-foreground mb-4">Inicia sesión para crear afirmaciones personalizadas y tu tablero de sueños.</p>
             <Button asChild><Link href="/login">Iniciar Sesión</Link></Button>
@@ -224,7 +224,7 @@ export default function AffirmationsPage() {
   }
 
   return (
-    <div className="container mx-auto max-w-2xl space-y-12">
+    <div className="mx-auto w-full max-w-2xl space-y-12">
       {/* Affirmation Generator Section */}
       <section>
         <header className="mb-8 text-center">

@@ -1,3 +1,4 @@
+
 'use client';
 
 import type React from 'react';
@@ -141,7 +142,7 @@ export default function PomodoroPage() {
   }
 
   return (
-    <div className="container mx-auto max-w-md">
+    <div className="mx-auto w-full max-w-md">
       <header className="mb-10 text-center">
         <div className="inline-flex items-center justify-center bg-primary/20 p-4 rounded-full mb-4">
             <Timer className="h-12 w-12 text-primary-foreground" />
@@ -226,3 +227,4 @@ export default function PomodoroPage() {
     </div>
   );
 }
+

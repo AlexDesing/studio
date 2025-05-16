@@ -132,11 +132,11 @@ export default function SettingsPage() {
   }
 
   if (!currentUser) {
-    return <div className="text-center py-10">Por favor, inicia sesión para ver tu configuración.</div>;
+    return <div className="mx-auto w-full max-w-2xl text-center py-10">Por favor, inicia sesión para ver tu configuración.</div>;
   }
 
   return (
-    <div className="container mx-auto max-w-2xl space-y-10">
+    <div className="mx-auto w-full max-w-2xl space-y-10">
       <header className="text-center">
         <h1 className="text-3xl font-bold text-foreground">Configuración de la Cuenta</h1>
         <p className="text-muted-foreground">Personaliza tu experiencia en CasaZen.</p>
@@ -249,3 +249,4 @@ export default function SettingsPage() {
     </div>
   );
 }
+

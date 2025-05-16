@@ -166,7 +166,7 @@ export default function NotificationsPage() {
   }
   if (!currentUser && !authLoading) {
      return (
-        <div className="container mx-auto text-center py-20">
+        <div className="mx-auto w-full max-w-2xl text-center py-20">
             <h1 className="text-2xl font-semibold">Centro de Notificaciones</h1>
             <p className="text-muted-foreground mb-4">Inicia sesión para gestionar tus alertas y mensajes.</p>
             <Button asChild><Link href="/login">Iniciar Sesión</Link></Button>
@@ -176,7 +176,7 @@ export default function NotificationsPage() {
 
 
   return (
-    <div className="container mx-auto max-w-2xl">
+    <div className="mx-auto w-full max-w-2xl">
       <header className="mb-10 text-center">
          <div className="inline-flex items-center justify-center bg-primary/20 p-4 rounded-full mb-4">
           <Bell className="h-10 w-10 text-primary-foreground" />

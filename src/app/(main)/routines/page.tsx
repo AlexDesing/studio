@@ -200,7 +200,7 @@ export default function RoutinesPage() {
   
   if (!currentUser && !authLoading) {
      return (
-        <div className="container mx-auto text-center py-20">
+        <div className="mx-auto w-full max-w-2xl text-center py-20">
             <h1 className="text-2xl font-semibold">Mis Rutinas Zen</h1>
             <p className="text-muted-foreground mb-4">Inicia sesión para crear y gestionar tus rutinas personalizadas.</p>
             <Button asChild><Link href="/login">Iniciar Sesión</Link></Button>
@@ -210,7 +210,7 @@ export default function RoutinesPage() {
 
 
   return (
-    <div className="container mx-auto max-w-2xl">
+    <div className="mx-auto w-full max-w-2xl">
       <header className="mb-10 text-center">
         <div className="inline-flex items-center justify-center bg-primary/20 p-4 rounded-full mb-4">
             <ListChecks className="h-12 w-12 text-primary-foreground" />
