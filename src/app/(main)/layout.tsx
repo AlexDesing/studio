@@ -14,6 +14,7 @@ import {
   SidebarMenuItem,
   SidebarTrigger,
   SidebarFooter,
+  SidebarProvider, // Ensure SidebarProvider is imported
 } from '@/components/ui/sidebar';
 import AppLogo from '@/components/AppLogo';
 import { NAV_ITEMS } from '@/lib/constants';
@@ -38,33 +39,37 @@ export default function MainAppLayout({
     try {
       await firebaseLogout();
       toast({ title: "Sesión Cerrada", description: "Has cerrado sesión correctamente." });
-      router.push('/login');
+      router.push('/login'); // Redirect to login after logout
     } catch (error) {
       toast({ variant: "destructive", title: "Error", description: "No se pudo cerrar sesión." });
     }
   };
   
   const getInitials = (name: string | null | undefined) => {
-    if (!name) return 'MZ'; // MovaZen initials
-    const names = name.split(' ');
+    if (!name || name.trim() === '') return 'MZ'; 
+    const names = name.trim().split(' ').filter(part => part.length > 0);
+    if (names.length === 0) return 'MZ';
     if (names.length === 1) return names[0].substring(0, 2).toUpperCase();
     return names[0][0].toUpperCase() + names[names.length - 1][0].toUpperCase();
   };
 
-
   return (
+    <SidebarProvider defaultOpen={true}> {/* SidebarProvider wraps the entire layout */}
       <div className="flex min-h-screen">
         <Sidebar collapsible="icon">
           <SidebarHeader className="p-4">
             <div className="flex items-center justify-between">
-              <AppLogo />
+              {/* Ensure this links to the new dashboard path if (main) is truly obsolete, or keep as is if it's a distinct section */}
+              <Link href="/app/dashboard" passHref> 
+                <AppLogo />
+              </Link>
               <SidebarTrigger className="md:hidden" />
             </div>
             <p className="text-xs text-muted-foreground mt-1 group-data-[collapsible=icon]:hidden">"Una mente sana refleja lo mejor"</p>
           </SidebarHeader>
           <SidebarContent>
             <SidebarMenu>
-              {NAV_ITEMS.map((item) => (
+              {NAV_ITEMS.map((item) => ( // NAV_ITEMS should point to /app/... paths
                 <SidebarMenuItem key={item.href}>
                   <Link href={item.href} passHref legacyBehavior>
                     <SidebarMenuButton
@@ -102,7 +107,8 @@ export default function MainAppLayout({
                 </div>
             )}
              <SidebarMenuItem>
-                  <Link href="/settings" passHref legacyBehavior>
+                   {/* Ensure this links to the new settings path if (main) is truly obsolete */}
+                  <Link href="/app/settings" passHref legacyBehavior>
                     <SidebarMenuButton className="justify-start w-full hover:bg-sidebar-accent hover:text-sidebar-accent-foreground" tooltip={{children: "Configuración", className: "group-data-[collapsible=icon]:block hidden"}}>
                         <Settings className="h-5 w-5" />
                         <span>Configuración</span>
@@ -120,12 +126,16 @@ export default function MainAppLayout({
         <SidebarInset className="flex-1 bg-background">
           <div className="py-4 md:py-6 w-full"> 
             <div className="flex items-center justify-between mb-6 md:hidden px-4"> 
-              <AppLogo />
+               {/* Ensure this links to the new dashboard path if (main) is truly obsolete */}
+              <Link href="/app/dashboard" passHref>
+                <AppLogo />
+              </Link>
               <SidebarTrigger />
             </div>
             {children}
           </div>
         </SidebarInset>
       </div>
+    </SidebarProvider>
   );
 }
