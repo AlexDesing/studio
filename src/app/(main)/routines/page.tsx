@@ -3,6 +3,7 @@
 
 import type React from 'react';
 import { useState, useEffect } from 'react';
+import Link from 'next/link'; // Import Link
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, ListChecks, Zap, Smile, Coffee, PlusCircle, Edit3, Trash2, Loader2, CalendarDays, Clock } from 'lucide-react';
@@ -11,6 +12,16 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { useAuth } from '@/contexts/AuthContext';
 import { createRoutine, updateRoutine, deleteRoutine, onRoutinesSnapshot, getLucideIconByName } from '@/lib/firebase/firestore/routines';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -30,15 +41,18 @@ export default function RoutinesPage() {
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
   const [editingRoutine, setEditingRoutine] = useState<Routine | null>(null);
   const [routineTitle, setRoutineTitle] = useState('');
   const [routineDescription, setRoutineDescription] = useState('');
   const [routineCategory, setRoutineCategory] = useState('');
   const [routineSteps, setRoutineSteps] = useState<string[]>(['']);
   const [routineIconName, setRoutineIconName] = useState<keyof typeof LucideIcons>('ListChecks');
-  const [routineStartDate, setRoutineStartDate] = useState<string>(''); // Store as string for input 'yyyy-MM-dd'
-  const [routineStartTime, setRoutineStartTime] = useState<string>(''); // Store as string for input 'HH:mm'
+  const [routineStartDate, setRoutineStartDate] = useState<string>(''); 
+  const [routineStartTime, setRoutineStartTime] = useState<string>(''); 
+
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [routineToDeleteId, setRoutineToDeleteId] = useState<string | null>(null);
 
 
   useEffect(() => {
@@ -64,7 +78,7 @@ export default function RoutinesPage() {
     setRoutineIconName('ListChecks');
     setRoutineStartDate('');
     setRoutineStartTime('');
-    setIsDialogOpen(true);
+    setIsFormDialogOpen(true);
   };
 
   const openEditDialog = (routine: Routine) => {
@@ -74,7 +88,6 @@ export default function RoutinesPage() {
     setRoutineCategory(routine.category);
     setRoutineSteps(routine.steps.length > 0 ? routine.steps : ['']);
     setRoutineIconName(routine.iconName || 'ListChecks');
-    // Format Date and Timestamp for input fields
     if (routine.startDate) {
       const dateObj = routine.startDate instanceof Timestamp ? routine.startDate.toDate() : new Date(routine.startDate);
       setRoutineStartDate(format(dateObj, 'yyyy-MM-dd'));
@@ -82,7 +95,7 @@ export default function RoutinesPage() {
       setRoutineStartDate('');
     }
     setRoutineStartTime(routine.startTime || '');
-    setIsDialogOpen(true);
+    setIsFormDialogOpen(true);
   };
 
   const handleStepChange = (index: number, value: string) => {
@@ -113,7 +126,7 @@ export default function RoutinesPage() {
         return;
     }
 
-    const routineData: Partial<Routine> = { // Use Partial<Routine> for flexibility
+    const routineData: Partial<Routine> = { 
       title: routineTitle.trim(),
       description: routineDescription.trim(),
       category: routineCategory.trim(),
@@ -122,21 +135,16 @@ export default function RoutinesPage() {
     };
 
     if (routineStartDate) {
-      // Ensure correct date parsing, considering potential timezone issues if time is also set.
-      // For date input 'yyyy-MM-dd', parseISO will handle it correctly.
-      // When combining with time, it's best to construct the date in a way that represents local time.
-      // Adding T00:00:00 makes it local to the user's browser timezone interpretation on that date.
       routineData.startDate = new Date(routineStartDate + 'T00:00:00');
     } else {
-      routineData.startDate = undefined; // Explicitly undefined if not set
+      routineData.startDate = undefined; 
     }
     
     if (routineStartTime) {
       routineData.startTime = routineStartTime;
     } else {
-      routineData.startTime = undefined; // Explicitly undefined if not set
+      routineData.startTime = undefined; 
     }
-
 
     try {
       if (editingRoutine) {
@@ -146,30 +154,40 @@ export default function RoutinesPage() {
         await createRoutine(currentUser.uid, routineData as Omit<Routine, 'id' | 'createdAt' | 'updatedAt' | 'userId'>);
         toast({ title: 'Rutina Creada'});
       }
-      setIsDialogOpen(false);
+      setIsFormDialogOpen(false);
     } catch (error: any) {
       console.error("Error saving routine: ", error);
       toast({ variant: 'destructive', title: 'Error al Guardar', description: error.message });
     }
   };
 
-  const handleDeleteRoutine = async (routineId: string) => {
-    if (!currentUser) return;
-    if (confirm('¿Estás segura de que quieres eliminar esta rutina?')) {
-        try {
-            await deleteRoutine(currentUser.uid, routineId);
-            toast({ title: 'Rutina Eliminada'});
-        } catch (error: any) {
-            console.error("Error deleting routine: ", error);
-            toast({ variant: 'destructive', title: 'Error al Eliminar', description: error.message });
-        }
+  const handleDeleteRoutine = async (routineId: string | null) => {
+    if (!currentUser || !routineId) return;
+    try {
+        await deleteRoutine(currentUser.uid, routineId);
+        toast({ title: 'Rutina Eliminada'});
+    } catch (error: any) {
+        console.error("Error deleting routine: ", error);
+        toast({ variant: 'destructive', title: 'Error al Eliminar', description: error.message });
     }
+  };
+
+  const openDeleteConfirmDialog = (e: React.MouseEvent, routineId: string) => {
+    e.stopPropagation(); // Prevent accordion from toggling
+    setRoutineToDeleteId(routineId);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteAndCloseDialog = async () => {
+    await handleDeleteRoutine(routineToDeleteId);
+    setIsDeleteDialogOpen(false);
+    setRoutineToDeleteId(null);
   };
   
   const RenderIcon = ({ name }: { name: keyof typeof LucideIcons | undefined }) => {
     if (!name) return <ListChecks className="h-8 w-8 text-primary" />;
     const IconComponent = LucideIcons[name] as React.ElementType;
-    if (!IconComponent) return <ListChecks className="h-8 w-8 text-primary" />; // Fallback
+    if (!IconComponent) return <ListChecks className="h-8 w-8 text-primary" />; 
     return <IconComponent className="h-8 w-8 text-primary" />;
   };
 
@@ -229,7 +247,7 @@ export default function RoutinesPage() {
                      <Button asChild variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); openEditDialog(routine);}} className="hover:bg-accent/50">
                         <span><Edit3 className="h-5 w-5 text-blue-500" /></span>
                      </Button>
-                     <Button asChild variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleDeleteRoutine(routine.id);}} className="hover:bg-destructive/10">
+                     <Button asChild variant="ghost" size="icon" onClick={(e) => openDeleteConfirmDialog(e, routine.id)} className="hover:bg-destructive/10">
                         <span><Trash2 className="h-5 w-5 text-destructive" /></span>
                      </Button>
                   </div>
@@ -260,12 +278,12 @@ export default function RoutinesPage() {
         </Card>
       )}
       <div className="mt-12 text-center">
-        <Button variant="link" className="text-primary">
+        <Button variant="link" className="text-highlight-purple">
             Explorar plantillas de rutinas (Próximamente)
         </Button>
       </div>
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <Dialog open={isFormDialogOpen} onOpenChange={setIsFormDialogOpen}>
             <DialogContent className="sm:max-w-[525px]">
               <DialogHeader>
                 <DialogTitle>{editingRoutine ? 'Editar Rutina' : 'Crear Nueva Rutina'}</DialogTitle>
@@ -320,13 +338,27 @@ export default function RoutinesPage() {
                 <Button variant="outline" onClick={addStepField} size="sm" className="mt-2">Añadir Paso</Button>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancelar</Button>
+                <Button variant="outline" onClick={() => setIsFormDialogOpen(false)}>Cancelar</Button>
                 <Button onClick={handleSaveRoutine}>{editingRoutine ? 'Guardar Cambios' : 'Crear Rutina'}</Button>
               </DialogFooter>
             </DialogContent>
         </Dialog>
 
+        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>¿Estás absolutamente segura?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Esta acción no se puede deshacer. Esto eliminará permanentemente la rutina de tus registros.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setRoutineToDeleteId(null)}>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmDeleteAndCloseDialog}>Sí, eliminar rutina</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
     </div>
   );
 }
-
