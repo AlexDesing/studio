@@ -14,7 +14,7 @@ import {
   SidebarMenuItem,
   SidebarTrigger,
   SidebarFooter,
-  SidebarProvider, // Import SidebarProvider
+  SidebarProvider, // Ensure SidebarProvider is imported
 } from '@/components/ui/sidebar';
 import AppLogo from '@/components/AppLogo';
 import { NAV_ITEMS } from '@/lib/constants';
@@ -54,12 +54,11 @@ export default function MainAppLayout({
   };
 
   return (
-    <SidebarProvider defaultOpen={true}> {/* SidebarProvider wraps the app layout */}
+    <SidebarProvider defaultOpen={true}> {/* SidebarProvider wraps the entire layout */}
       <div className="flex min-h-screen">
         <Sidebar collapsible="icon">
           <SidebarHeader className="p-4">
             <div className="flex items-center justify-between">
-              {/* AppLogo now links to /app/dashboard */}
               <Link href="/app/dashboard" passHref>
                 <AppLogo />
               </Link>
@@ -107,7 +106,6 @@ export default function MainAppLayout({
                 </div>
             )}
              <SidebarMenuItem>
-                  {/* Link to /app/settings */}
                   <Link href="/app/settings" passHref legacyBehavior>
                     <SidebarMenuButton className="justify-start w-full hover:bg-sidebar-accent hover:text-sidebar-accent-foreground" tooltip={{children: "Configuración", className: "group-data-[collapsible=icon]:block hidden"}}>
                         <Settings className="h-5 w-5" />
