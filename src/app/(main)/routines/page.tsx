@@ -3,7 +3,7 @@
 
 import type React from 'react';
 import { useState, useEffect } from 'react';
-import Link from 'next/link'; // Import Link
+import Link from 'next/link'; 
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, ListChecks, Zap, Smile, Coffee, PlusCircle, Edit3, Trash2, Loader2, CalendarDays, Clock } from 'lucide-react';
@@ -135,7 +135,6 @@ export default function RoutinesPage() {
     };
 
     if (routineStartDate) {
-      // Ensure time is considered correctly if using date string
       const [year, month, day] = routineStartDate.split('-').map(Number);
       routineData.startDate = new Date(year, month - 1, day);
     } else {
@@ -175,7 +174,7 @@ export default function RoutinesPage() {
   };
 
   const openDeleteConfirmDialog = (e: React.MouseEvent, routineId: string) => {
-    e.stopPropagation(); // Prevent accordion from toggling
+    e.stopPropagation(); 
     setRoutineToDeleteId(routineId);
     setIsDeleteDialogOpen(true);
   };
@@ -210,7 +209,7 @@ export default function RoutinesPage() {
 
 
   return (
-    <div className="mx-auto w-full max-w-5xl">
+    <div className="w-full max-w-5xl px-6 ml-[calc(max(0px,50vw-40rem))]"> {/* MODIFIED for viewport centering */}
       <header className="mb-10 text-center">
         <div className="inline-flex items-center justify-center bg-primary/20 p-4 rounded-full mb-4">
             <ListChecks className="h-12 w-12 text-primary-foreground" />
@@ -364,5 +363,3 @@ export default function RoutinesPage() {
     </div>
   );
 }
-
-    

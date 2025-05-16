@@ -59,7 +59,6 @@ export default function AffirmationsPage() {
       setIsLoadingVisionBoard(true);
       const unsubscribe = onVisionBoardItemsSnapshot(currentUser.uid, (items) => {
         setVisionBoardItems(items);
-        // Only reset page index if it's out of bounds or initially
         if (currentVisionPageIndex >= items.length && items.length > 0) {
           setCurrentVisionPageIndex(items.length - 1);
         } else if (items.length === 0) {
@@ -72,7 +71,7 @@ export default function AffirmationsPage() {
         setVisionBoardItems([]);
         setIsLoadingVisionBoard(false);
     }
-  }, [currentUser, authLoading, currentVisionPageIndex]); // Added currentVisionPageIndex to dependencies to avoid stale closure issues if needed
+  }, [currentUser, authLoading, currentVisionPageIndex]); 
 
   const handleGenerateAffirmation = async () => {
     if (!needs.trim() && !mood) {
@@ -129,7 +128,6 @@ export default function AffirmationsPage() {
     }
   };
 
-  // Vision Board Dialog Handlers
   const openAddVisionItemDialog = () => {
     setEditingVisionItem(null);
     setVisionItemTitle('');
@@ -187,13 +185,11 @@ export default function AffirmationsPage() {
         try {
             await deleteVisionBoardItem(currentUser.uid, itemId);
             toast({title: "Elemento Eliminado"});
-            // Adjust current page if the deleted item was the last one and not the only one
-            if (visionBoardItems.length -1 === 0) { // if it was the last item
+            if (visionBoardItems.length -1 === 0) { 
                 setCurrentVisionPageIndex(0);
-            } else if (currentVisionPageIndex >= visionBoardItems.length - 1) { // If on the last page that now doesn't exist
+            } else if (currentVisionPageIndex >= visionBoardItems.length - 1) { 
                  setCurrentVisionPageIndex(Math.max(0, currentVisionPageIndex - 1));
             }
-            // No need to manually filter visionBoardItems, onVisionBoardItemsSnapshot will update it
         } catch (error: any) {
             console.error("Error deleting vision board item: ", error);
             toast({variant: "destructive", title: "Error al Eliminar", description: error.message});
@@ -225,8 +221,7 @@ export default function AffirmationsPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-5xl space-y-12">
-      {/* Affirmation Generator Section */}
+    <div className="w-full max-w-5xl px-6 ml-[calc(max(0px,50vw-40rem))] space-y-12"> {/* MODIFIED for viewport centering */}
       <section>
         <header className="mb-8 text-center">
           <div className="inline-flex items-center justify-center bg-primary/20 p-3 rounded-full mb-4">
@@ -327,7 +322,6 @@ export default function AffirmationsPage() {
 
       <Separator className="my-16" />
 
-      {/* Vision Board "Book" Section */}
       <section>
         <header className="mb-10 text-center">
           <div className="inline-flex items-center justify-center bg-secondary/30 p-4 rounded-full mb-5">
@@ -344,12 +338,10 @@ export default function AffirmationsPage() {
           <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary"/></div>
         ) : visionBoardItems.length > 0 && currentVisionItem ? (
           <Card className="shadow-2xl bg-card/90 backdrop-blur-sm border-secondary/50 rounded-xl overflow-hidden relative pb-16 min-h-[600px] flex flex-col">
-            {/* Page Content */}
             <div 
-              key={currentVisionItem.id} // Added key for animation trigger
-              className="flex-grow p-6 md:p-10 bg-gradient-to-br from-background to-card/50 relative animate-in fade-in duration-500" // Added animation classes
+              key={currentVisionItem.id} 
+              className="flex-grow p-6 md:p-10 bg-gradient-to-br from-background to-card/50 relative animate-in fade-in duration-500"
             >
-                {/* Page Curl Effect (decorative) */}
                 <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-transparent via-transparent to-secondary/20 opacity-50 pointer-events-none" style={{ clipPath: 'polygon(100% 0, 0 0, 100% 100%)' }}></div>
                 
                 <div className="relative w-full h-60 md:h-80 mb-6 rounded-lg overflow-hidden shadow-lg mx-auto max-w-md">
@@ -385,7 +377,6 @@ export default function AffirmationsPage() {
                 </div>
             </div>
 
-            {/* Book Navigation */}
             {visionBoardItems.length > 1 && (
               <div className="absolute bottom-0 left-0 right-0 flex justify-between items-center p-4 bg-card-foreground/5 border-t border-secondary/30">
                 <Button variant="ghost" onClick={goToPreviousPage} disabled={currentVisionPageIndex === 0} className="text-secondary-foreground hover:bg-secondary/20">
@@ -409,7 +400,6 @@ export default function AffirmationsPage() {
         )}
       </section>
 
-      {/* Vision Board Item Dialog */}
       <Dialog open={isVisionBoardDialogOpen} onOpenChange={setIsVisionBoardDialogOpen}>
             <DialogContent className="sm:max-w-[525px]">
               <DialogHeader>
@@ -447,5 +437,3 @@ export default function AffirmationsPage() {
     </div>
   );
 }
-
-    

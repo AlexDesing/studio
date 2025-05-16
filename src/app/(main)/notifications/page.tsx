@@ -3,7 +3,7 @@
 
 import type React from 'react';
 import { useState, useEffect } from 'react';
-import Link from 'next/link'; // Import Link
+import Link from 'next/link'; 
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -17,7 +17,7 @@ import type { UserProfileData } from '@/lib/firebase/firestore/users';
 
 
 interface NotificationSetting {
-  id: keyof NonNullable<NonNullable<UserProfileData['preferences']>['notifications']>; // Use keys from type
+  id: keyof NonNullable<NonNullable<UserProfileData['preferences']>['notifications']>; 
   label: string;
   enabled: boolean;
 }
@@ -41,7 +41,6 @@ const initialSettingLabels: Record<NotificationSetting['id'], string> = {
 };
 
 
-// Enhanced mock notifications (client-side only for now)
 const initialNotifications: NotificationItem[] = [
   { 
     id: '1', 
@@ -78,7 +77,7 @@ export default function NotificationsPage() {
   const { toast } = useToast();
 
   const [settings, setSettings] = useState<NotificationSetting[]>([]);
-  const [notifications, setNotifications] = useState<NotificationItem[]>(initialNotifications); // Keep mock for display
+  const [notifications, setNotifications] = useState<NotificationItem[]>(initialNotifications); 
   const [isLoadingSettings, setIsLoadingSettings] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -89,12 +88,12 @@ export default function NotificationsPage() {
       const loadedSettings = (Object.keys(initialSettingLabels) as Array<NotificationSetting['id']>).map(key => ({
         id: key,
         label: initialSettingLabels[key],
-        enabled: currentPrefs[key] !== undefined ? currentPrefs[key] : true, // Default to true if not set
+        enabled: currentPrefs[key] !== undefined ? currentPrefs[key] : true, 
       }));
       setSettings(loadedSettings);
       setIsLoadingSettings(false);
     } else if (!currentUser && !authLoading) {
-        setSettings([]); // Or default settings if preferred for logged-out view
+        setSettings([]); 
         setIsLoadingSettings(false);
     }
   }, [currentUser, authLoading]);
@@ -121,7 +120,7 @@ export default function NotificationsPage() {
 
     try {
         await updateUserPreferences(currentUser.uid, { 
-            ...currentUser.preferences, // keep other preferences like theme
+            ...currentUser.preferences, 
             notifications: preferencesToSave 
         });
         toast({ title: "Ajustes Guardados", description: "Tus preferencias de notificación han sido actualizadas." });
@@ -153,7 +152,7 @@ export default function NotificationsPage() {
         case 'Motivación': return 'border-purple-500 bg-purple-500/10';
         case 'Autocuidado': return 'border-pink-500 bg-pink-500/10';
         case 'Consejo': return 'border-green-500 bg-green-500/10';
-        default: return 'border-border bg-muted/10'; // Changed default to use border and muted
+        default: return 'border-border bg-muted/10'; 
     }
   };
   
@@ -176,7 +175,7 @@ export default function NotificationsPage() {
 
 
   return (
-    <div className="mx-auto w-full max-w-5xl">
+    <div className="w-full max-w-5xl px-6 ml-[calc(max(0px,50vw-40rem))]"> {/* MODIFIED for viewport centering */}
       <header className="mb-10 text-center">
          <div className="inline-flex items-center justify-center bg-primary/20 p-4 rounded-full mb-4">
           <Bell className="h-10 w-10 text-primary-foreground" />
@@ -263,5 +262,3 @@ export default function NotificationsPage() {
     </div>
   );
 }
-
-    

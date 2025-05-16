@@ -122,7 +122,6 @@ export default function SettingsPage() {
       return nameParts[0].substring(0, 2).toUpperCase();
     }
 
-    // At least two parts exist, and they are not empty strings
     const firstInitial = nameParts[0][0].toUpperCase();
     const lastInitial = nameParts[nameParts.length - 1][0].toUpperCase();
     return `${firstInitial}${lastInitial}`;
@@ -143,7 +142,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-5xl space-y-10">
+    <div className="w-full max-w-5xl px-6 ml-[calc(max(0px,50vw-40rem))] space-y-10"> {/* MODIFIED for viewport centering */}
       <header className="text-center">
         <h1 className="text-3xl font-bold text-foreground">Configuración de la Cuenta</h1>
         <p className="text-muted-foreground">Personaliza tu experiencia en CasaZen.</p>
@@ -256,4 +255,3 @@ export default function SettingsPage() {
     </div>
   );
 }
-
