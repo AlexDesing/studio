@@ -226,11 +226,11 @@ export default function RoutinesPage() {
                     )}
                   </div>
                   <div className="flex space-x-2">
-                     <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); openEditDialog(routine);}} className="hover:bg-accent/50">
-                        <Edit3 className="h-5 w-5 text-blue-500" />
+                     <Button asChild variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); openEditDialog(routine);}} className="hover:bg-accent/50">
+                        <span><Edit3 className="h-5 w-5 text-blue-500" /></span>
                      </Button>
-                     <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleDeleteRoutine(routine.id);}} className="hover:bg-destructive/10">
-                        <Trash2 className="h-5 w-5 text-destructive" />
+                     <Button asChild variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleDeleteRoutine(routine.id);}} className="hover:bg-destructive/10">
+                        <span><Trash2 className="h-5 w-5 text-destructive" /></span>
                      </Button>
                   </div>
                 </div>
@@ -329,3 +329,4 @@ export default function RoutinesPage() {
     </div>
   );
 }
+
