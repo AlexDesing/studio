@@ -58,11 +58,7 @@ const generateAffirmationFlow = ai.defineFlow(
     outputSchema: GenerateAffirmationOutputSchema,
   },
   async input => {
-    // GENKIT EXECUTION CONFIRMATION LOG
-    console.log(' जेनकिट प्रवाह निष्पादन की पुष्टि / GENKIT FLOW CONFIRMATION: generateAffirmationFlow is running with input:', input);
-    
     const {output} = await prompt(input);
     return output!;
   }
 );
-
