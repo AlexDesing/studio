@@ -8,7 +8,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter }
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Bell, Trash2, Sparkles, Coffee, Lightbulb, Loader2, Save, BookOpen, Smile, Zap, CalendarDays } from 'lucide-react';
+import { Bell, Trash2, Sparkles, Coffee, Lightbulb, Loader2, Save, BookOpen, Smile, Zap, CalendarDays, Award } from 'lucide-react'; // Added Award
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { updateUserPreferences } from '@/lib/firebase/firestore/users';
@@ -37,7 +37,7 @@ const iconMap: { [key in UserAppNotification['category'] | string]?: React.Eleme
   Motivación: Sparkles,
   Autocuidado: Smile,
   Consejo: Lightbulb,
-  Logro: Award, // Assuming Award icon for Logro
+  Logro: Award, 
   General: Bell,
 };
 
@@ -119,12 +119,13 @@ export default function NotificationsPage() {
     if (!currentUser) return;
     try {
       await markUserNotificationAsRead(currentUser.uid, id);
-      // Optimistic update locally, or rely on onSnapshot to refresh
-      setNotifications(prev =>
-        prev.map(notif =>
-          notif.id === id ? { ...notif, read: true } : notif
-        )
-      );
+      // Firestore listener will update the UI automatically.
+      // To provide instant feedback, you could also update local state:
+      // setNotifications(prev =>
+      //   prev.map(notif =>
+      //     notif.id === id ? { ...notif, read: true } : notif
+      //   )
+      // );
       toast({ title: "Notificación Leída", description: "Has marcado una notificación como leída." });
     } catch (error: any) {
       toast({ variant: "destructive", title: "Error", description: `No se pudo marcar como leída: ${error.message}` });
