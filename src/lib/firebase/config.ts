@@ -55,26 +55,28 @@ service cloud.firestore {
     // Users can read and write their own profile data
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
-    // Users can read, write, and delete their own tasks
-    match /users/{userId}/tasks/{taskId} {
-      allow read, write, delete: if request.auth != null && request.auth.uid == userId;
-    }
-    // Users can read, write, and delete their own routines
-    match /users/{userId}/routines/{routineId} {
-      allow read, write, delete: if request.auth != null && request.auth.uid == userId;
-    }
-    // Users can read, write, and delete their own saved affirmations
-    match /users/{userId}/savedAffirmations/{affirmationId} {
-      allow read, write, delete: if request.auth != null && request.auth.uid == userId;
-    }
-     // Users can read, write, and delete their own vision board items
-    match /users/{userId}/visionBoardItems/{itemId} {
-      allow read, write, delete: if request.auth != null && request.auth.uid == userId;
-    }
-    // User preferences
-     match /users/{userId}/preferences/notifications {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+
+      // Users can read, write, and delete their own tasks
+      match /tasks/{taskId} {
+        allow read, write, delete: if request.auth != null && request.auth.uid == userId;
+      }
+      // Users can read, write, and delete their own routines
+      match /routines/{routineId} {
+        allow read, write, delete: if request.auth != null && request.auth.uid == userId;
+      }
+      // Users can read, write, and delete their own saved affirmations
+      match /savedAffirmations/{affirmationId} {
+        allow read, write, delete: if request.auth != null && request.auth.uid == userId;
+      }
+      // Users can read, write, and delete their own vision board items
+      match /visionBoardItems/{itemId} {
+        allow read, write, delete: if request.auth != null && request.auth.uid == userId;
+      }
+      // Users can read and write their own app notifications
+      // (e.g., read notifications, mark as read)
+      match /userAppNotifications/{notificationId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
     }
   }
 }
@@ -93,3 +95,4 @@ service firebase.storage {
   }
 }
 */
+
