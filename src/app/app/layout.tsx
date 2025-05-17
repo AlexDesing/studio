@@ -105,7 +105,8 @@ export default function MainAppLayout({
                     </div>
                 </div>
             )}
-             <SidebarMenuItem>
+            <SidebarMenu> {/* Added SidebarMenu wrapper */}
+              <SidebarMenuItem>
                   <Link href="/app/settings" passHref legacyBehavior>
                     <SidebarMenuButton className="justify-start w-full hover:bg-sidebar-accent hover:text-sidebar-accent-foreground" tooltip={{children: "Configuración", className: "group-data-[collapsible=icon]:block hidden"}}>
                         <Settings className="h-5 w-5" />
@@ -119,6 +120,7 @@ export default function MainAppLayout({
                       <span>Cerrar Sesión</span>
                   </SidebarMenuButton>
               </SidebarMenuItem>
+            </SidebarMenu> {/* Closed SidebarMenu wrapper */}
           </SidebarFooter>
         </Sidebar>
         <SidebarInset className="flex-1 bg-background">
