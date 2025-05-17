@@ -13,6 +13,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { geminiAiAssistant, type GeminiAiAssistantInput } from '@/ai/flows/gemini-ai-assistant';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import Image from 'next/image'; // Import next/image
 
 interface Message {
   id: string;
@@ -133,9 +134,17 @@ export default function AiAssistantPage() {
                 >
                   <Avatar className="h-10 w-10"> 
                     <AvatarImage 
+                      asChild
                       src={message.sender === 'ai' ? "https://placehold.co/80x80.png" : "https://placehold.co/80x80.png"} 
-                      data-ai-hint={message.sender === 'ai' ? "animated friendly robot" : "person silhouette pastel"} 
-                    />
+                    >
+                        <Image 
+                            src={message.sender === 'ai' ? "https://placehold.co/80x80.png" : "https://placehold.co/80x80.png"} 
+                            alt={message.sender === 'ai' ? "AI Avatar" : "User Avatar"}
+                            width={80}
+                            height={80}
+                            data-ai-hint={message.sender === 'ai' ? "friendly robot" : "person silhouette"} 
+                        />
+                    </AvatarImage>
                     <AvatarFallback className={cn(message.sender === 'ai' ? 'bg-secondary text-secondary-foreground' : 'bg-primary text-primary-foreground')}>
                       {message.sender === 'ai' ? <Bot/> : <User/>}
                     </AvatarFallback>
@@ -158,7 +167,9 @@ export default function AiAssistantPage() {
               {isLoading && (
                 <div className="flex items-end space-x-2">
                   <Avatar className="h-10 w-10">
-                     <AvatarImage src="https://placehold.co/80x80.png" data-ai-hint="animated friendly robot thinking" />
+                     <AvatarImage asChild src="https://placehold.co/80x80.png">
+                        <Image src="https://placehold.co/80x80.png" alt="AI Thinking Avatar" width={80} height={80} data-ai-hint="robot thinking" />
+                     </AvatarImage>
                     <AvatarFallback className="bg-secondary text-secondary-foreground"><Bot/></AvatarFallback>
                   </Avatar>
                   <div className="p-3 rounded-lg bg-card-foreground/10 text-foreground rounded-bl-none shadow-md">

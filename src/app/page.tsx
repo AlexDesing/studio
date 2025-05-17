@@ -81,7 +81,7 @@ export default function LandingPage() {
               width={1200}
               height={600}
               className="rounded-xl shadow-2xl"
-              data-ai-hint="calm productive app interface"
+              data-ai-hint="calm interface"
               priority
             />
           </div>
@@ -146,7 +146,7 @@ export default function LandingPage() {
               <div key={i} className="p-6 bg-card rounded-lg shadow-lg">
                 <p className="text-muted-foreground italic">"MovaZen ha cambiado mi forma de organizar mis mañanas. Ahora empiezo el día con más calma y enfoque. ¡Lo recomiendo totalmente!"</p>
                 <div className="mt-4 flex items-center">
-                  <Image src={'https://placehold.co/40x40.png'} alt={`Usuaria ${i}`} width={40} height={40} className="rounded-full" data-ai-hint="happy woman face" />
+                  <Image src={'https://placehold.co/40x40.png'} alt={`Usuaria ${i}`} width={40} height={40} className="rounded-full" data-ai-hint="happy woman" />
                   <div className="ml-3">
                     <p className="font-semibold text-foreground">Nombre Usuaria {i}</p>
                     <p className="text-xs text-muted-foreground">Rol (Ej: Freelancer)</p>

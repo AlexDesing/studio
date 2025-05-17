@@ -175,7 +175,7 @@ export default function AffirmationsPage() {
         title: visionItemTitle.trim(),
         description: visionItemDescription.trim(),
         imageUrl: visionItemImageUrl, 
-        imageHint: visionItemImageHint.trim(),
+        imageHint: visionItemImageHint.trim().split(' ').slice(0, 2).join(' '), // Ensure max 2 words
     };
 
     try {
@@ -304,7 +304,7 @@ export default function AffirmationsPage() {
                 </Button>
             </div>
             <div className="hidden md:flex justify-center items-center">
-                 <Image src="https://placehold.co/300x300.png" alt="Ilustración de bienestar" width={300} height={300} className="rounded-lg" data-ai-hint="flat vector illustration wellbeing meditation" />
+                 <Image src="https://placehold.co/300x300.png" alt="Ilustración de bienestar" width={300} height={300} className="rounded-lg" data-ai-hint="wellbeing meditation" />
             </div>
           </CardContent>
           
@@ -372,7 +372,7 @@ export default function AffirmationsPage() {
                     layout="fill"
                     objectFit="cover"
                     className="transition-transform duration-500 hover:scale-105"
-                    data-ai-hint={currentVisionItem.imageHint || "vision board image"}
+                    data-ai-hint={currentVisionItem.imageHint ? currentVisionItem.imageHint.split(' ').slice(0, 2).join(' ') : "vision image"}
                     onError={(e) => e.currentTarget.src = 'https://placehold.co/600x400.png?text=Error+al+cargar'}
                   />
                 </div>
@@ -437,7 +437,15 @@ export default function AffirmationsPage() {
                 </div>
                 {visionItemImageUrl && visionItemImageUrl.startsWith('https://') && (
                     <div className="my-2 flex justify-center">
-                        <Image src={visionItemImageUrl} alt="Previsualización" width={200} height={150} className="rounded-md object-cover mx-auto" onError={(e) => e.currentTarget.style.display='none'}/>
+                        <Image 
+                            src={visionItemImageUrl} 
+                            alt="Previsualización" 
+                            width={200} 
+                            height={150} 
+                            className="rounded-md object-cover mx-auto" 
+                            onError={(e) => e.currentTarget.style.display='none'}
+                            data-ai-hint={visionItemImageHint ? visionItemImageHint.split(' ').slice(0, 2).join(' ') : 'abstract vision'}
+                        />
                     </div>
                 )}
                 <div className="space-y-1">

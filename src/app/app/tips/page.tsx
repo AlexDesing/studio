@@ -24,11 +24,12 @@ export default function DailyTipsPage() {
 
   useEffect(() => {
     setIsMounted(true);
+    // Hints are already updated in constants.ts
     setTipCategories([
-      { value: 'cleaning', label: 'Limpieza', icon: CleaningSparkles, tips: MOCK_TIPS.cleaning || [], illustrationHint: 'flat vector illustration cleaning tools' },
-      { value: 'cooking', label: 'Cocina', icon: ChefHat, tips: MOCK_TIPS.cooking || [], illustrationHint: 'flat vector illustration cooking ingredients' },
-      { value: 'organizing', label: 'Organización', icon: Lightbulb, tips: MOCK_TIPS.organizing || [], illustrationHint: 'flat vector illustration organized desk' },
-      { value: 'wellbeing', label: 'Bienestar', icon: HeartHandshake, tips: MOCK_TIPS.wellbeing || [], illustrationHint: 'flat vector illustration yoga meditation' },
+      { value: 'cleaning', label: 'Limpieza', icon: CleaningSparkles, tips: MOCK_TIPS.cleaning || [], illustrationHint: MOCK_TIPS.cleaningHint || 'cleaning tools' },
+      { value: 'cooking', label: 'Cocina', icon: ChefHat, tips: MOCK_TIPS.cooking || [], illustrationHint: MOCK_TIPS.cookingHint || 'cooking ingredients' },
+      { value: 'organizing', label: 'Organización', icon: Lightbulb, tips: MOCK_TIPS.organizing || [], illustrationHint: MOCK_TIPS.organizingHint || 'desk organization' },
+      { value: 'wellbeing', label: 'Bienestar', icon: HeartHandshake, tips: MOCK_TIPS.wellbeing || [], illustrationHint: MOCK_TIPS.wellbeingHint || 'yoga meditation' },
     ]);
   }, []);
 

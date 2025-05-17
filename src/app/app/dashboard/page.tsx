@@ -157,7 +157,7 @@ export default function DashboardPage() {
           <CardContent>
             <div className="text-3xl font-bold text-foreground">{weeklyHabitProgress}% completado</div>
             <div className="mt-2 h-[60px] bg-secondary/30 rounded-md flex items-center justify-center">
-                <Image src="https://placehold.co/200x60.png" width={200} height={60} alt="Gráfico de hábitos" data-ai-hint="bar chart habit tracker" className="opacity-50"/>
+                <Image src="https://placehold.co/200x60.png" width={200} height={60} alt="Gráfico de hábitos" data-ai-hint="chart habit" className="opacity-50"/>
             </div>
             <p className="text-xs text-muted-foreground mt-1">Meta semanal de hábitos (En desarrollo).</p>
           </CardContent>
@@ -172,7 +172,7 @@ export default function DashboardPage() {
           <CardContent>
             <div className="text-3xl font-bold text-foreground">{wellbeingScore}/10</div>
             <div className="mt-2 h-[60px] bg-accent/20 rounded-md flex items-center justify-center">
-                 <Image src="https://placehold.co/200x60.png" width={200} height={60} alt="Gráfico de bienestar" data-ai-hint="line graph mood trend" className="opacity-50"/>
+                 <Image src="https://placehold.co/200x60.png" width={200} height={60} alt="Gráfico de bienestar" data-ai-hint="graph mood" className="opacity-50"/>
             </div>
             <p className="text-xs text-muted-foreground mt-1">Basado en tu estado de ánimo (En desarrollo).</p>
           </CardContent>

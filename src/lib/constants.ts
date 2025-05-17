@@ -24,23 +24,27 @@ export const MOCK_TASKS_FOR_NEW_USER: Omit<Task, 'id' | 'userId' | 'createdAt' |
 export const MOCK_TASKS: Task[] = [];
 
 
-export const MOCK_TIPS: { [key: string]: Tip[] } = {
+export const MOCK_TIPS: { [key: string]: Tip[], cleaningHint?: string, cookingHint?: string, organizingHint?: string, wellbeingHint?: string } = {
   cleaning: [
     { id: 'c1', title: 'Limpieza Rápida de Baño', content: 'Limpia las superficies del baño a diario para evitar acumulaciones. ¡Solo toma 5 minutos!' },
     { id: 'c2', title: 'Lavavajillas Nocturno', content: 'Pon el lavavajillas cada noche para despertar con una cocina limpia.' },
   ],
+  cleaningHint: "cleaning tools",
   cooking: [
     { id: 'k1', title: 'Prepara Vegetales con Anticipación', content: 'Pica verduras para los próximos días el domingo para ahorrar tiempo durante la semana.' },
     { id: 'k2', title: 'Comidas en una Olla', content: 'Adopta las comidas en una sola olla para cocinar y limpiar más fácilmente.' },
   ],
+  cookingHint: "cooking ingredients",
   organizing: [
     { id: 'o1', title: 'Orden Rápido de 15 Minutos', content: 'Pon un temporizador de 15 minutos cada noche para un orden rápido de la casa.' },
     { id: 'o2', title: 'Despeja un Cajón', content: 'Encárgate de un cajón pequeño o estante cada día para despejar tu casa poco a poco.' },
   ],
+  organizingHint: "desk organization",
   wellbeing: [
     { id: 'w1', title: 'Recordatorio de Hidratación', content: 'Mantén una botella de agua cerca y bebe a lo largo del día para mantenerte hidratado.'},
     { id: 'w2', title: 'Momento Consciente', content: 'Respira profundamente 5 veces cuando te sientas estresado o abrumado.'}
-  ]
+  ],
+  wellbeingHint: "yoga meditation"
 };
 
 export const MOOD_OPTIONS = [
@@ -73,8 +77,8 @@ export const MOCK_ROUTINES: Routine[] = [];
 
 
 export const MOCK_BADGES: Badge[] = [
-  { id: 'b1', title: 'Madrugadora Zen', description: 'Completaste 3 tareas matutinas esta semana.', iconUrl: 'https://placehold.co/100x100.png', achieved: true, imageHint: "sunrise medal" },
-  { id: 'b2', title: 'Enfoque Total', description: 'Usaste el temporizador Pomodoro por 5 sesiones.', iconUrl: 'https://placehold.co/100x100.png', achieved: false, imageHint: "target icon" },
-  { id: 'b3', title: 'Maestra de la Calma', description: 'Generaste 7 afirmaciones personalizadas.', iconUrl: 'https://placehold.co/100x100.png', achieved: true, imageHint: "zen badge" },
-  { id: 'b4', title: 'Exploradora de Bienestar', description: 'Probaste una nueva rutina de bienestar.', iconUrl: 'https://placehold.co/100x100.png', achieved: false, imageHint: "compass award" }
+  { id: 'b1', title: 'Madrugadora Zen', description: 'Completaste 3 tareas matutinas esta semana.', iconUrl: 'https://placehold.co/60x60.png', achieved: true, imageHint: "sunrise medal" },
+  { id: 'b2', title: 'Enfoque Total', description: 'Usaste el temporizador Pomodoro por 5 sesiones.', iconUrl: 'https://placehold.co/60x60.png', achieved: false, imageHint: "target icon" },
+  { id: 'b3', title: 'Maestra de la Calma', description: 'Generaste 7 afirmaciones personalizadas.', iconUrl: 'https://placehold.co/60x60.png', achieved: true, imageHint: "zen badge" },
+  { id: 'b4', title: 'Exploradora de Bienestar', description: 'Probaste una nueva rutina de bienestar.', iconUrl: 'https://placehold.co/60x60.png', achieved: false, imageHint: "compass award" }
 ];
