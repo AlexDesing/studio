@@ -8,28 +8,20 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter }
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Bell, Trash2, Sparkles, Coffee, Lightbulb, Loader2, Save } from 'lucide-react';
+import { Bell, Trash2, Sparkles, Coffee, Lightbulb, Loader2, Save, BookOpen, Smile, Zap, CalendarDays } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { MOCK_TASKS } from '@/lib/constants'; 
 import { useAuth } from '@/contexts/AuthContext';
-import { updateUserPreferences, getUserProfile } from '@/lib/firebase/firestore/users';
+import { updateUserPreferences } from '@/lib/firebase/firestore/users';
 import type { UserProfileData } from '@/lib/firebase/firestore/users';
+import type { UserAppNotification } from '@/lib/types';
+import { onUserAppNotificationsSnapshot, markUserNotificationAsRead } from '@/lib/firebase/firestore/userAppNotifications';
+import * as LucideIcons from 'lucide-react';
 
 
 interface NotificationSetting {
   id: keyof NonNullable<NonNullable<UserProfileData['preferences']>['notifications']>; 
   label: string;
   enabled: boolean;
-}
-
-interface NotificationItem {
-  id: string;
-  title: string;
-  message: string;
-  timestamp: Date;
-  read: boolean;
-  icon?: React.ElementType;
-  category: 'Recordatorio' | 'Motivación' | 'Autocuidado' | 'Consejo';
 }
 
 const initialSettingLabels: Record<NotificationSetting['id'], string> = {
@@ -40,36 +32,14 @@ const initialSettingLabels: Record<NotificationSetting['id'], string> = {
   selfCareReminders: 'Recordatorios de Autocuidado',
 };
 
-
-const initialNotifications: NotificationItem[] = [
-  { 
-    id: '1', 
-    title: 'Recordatorio de Tarea', 
-    message: `Tu tarea "${MOCK_TASKS.find(t => t.id === '2')?.title || 'Planificar comidas'}" vence pronto. ¡Tú puedes!`, 
-    timestamp: new Date(Date.now() - 3600000), 
-    read: false,
-    icon: Bell,
-    category: 'Recordatorio'
-  },
-  { 
-    id: '2', 
-    title: '✨ ¡Frase del Día!', 
-    message: 'La felicidad no es algo hecho. Proviene de tus propias acciones.', 
-    timestamp: new Date(Date.now() - 7200000), 
-    read: true,
-    icon: Sparkles,
-    category: 'Motivación'
-  },
-  { 
-    id: '3', 
-    title: '💡 Consejo de Bienestar', 
-    message: 'Toma una pausa de 5 minutos para estirarte y relajar tu mente.', 
-    timestamp: new Date(Date.now() - 14400000), 
-    read: true,
-    icon: Lightbulb,
-    category: 'Consejo' 
-  },
-];
+const iconMap: { [key in UserAppNotification['category'] | string]?: React.ElementType } = {
+  Recordatorio: Bell,
+  Motivación: Sparkles,
+  Autocuidado: Smile,
+  Consejo: Lightbulb,
+  Logro: Award, // Assuming Award icon for Logro
+  General: Bell,
+};
 
 
 export default function NotificationsPage() {
@@ -77,8 +47,9 @@ export default function NotificationsPage() {
   const { toast } = useToast();
 
   const [settings, setSettings] = useState<NotificationSetting[]>([]);
-  const [notifications, setNotifications] = useState<NotificationItem[]>(initialNotifications); 
+  const [notifications, setNotifications] = useState<UserAppNotification[]>([]); 
   const [isLoadingSettings, setIsLoadingSettings] = useState(true);
+  const [isLoadingNotifications, setIsLoadingNotifications] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -92,9 +63,21 @@ export default function NotificationsPage() {
       }));
       setSettings(loadedSettings);
       setIsLoadingSettings(false);
+
+      setIsLoadingNotifications(true);
+      const unsubscribeNotifications = onUserAppNotificationsSnapshot(currentUser.uid, (fetchedNotifications) => {
+        setNotifications(fetchedNotifications);
+        setIsLoadingNotifications(false);
+      });
+      return () => {
+        unsubscribeNotifications();
+      };
+
     } else if (!currentUser && !authLoading) {
         setSettings([]); 
+        setNotifications([]);
         setIsLoadingSettings(false);
+        setIsLoadingNotifications(false);
     }
   }, [currentUser, authLoading]);
 
@@ -119,41 +102,50 @@ export default function NotificationsPage() {
     }, {} as Record<NotificationSetting['id'], boolean>);
 
     try {
-        // Ensure currentUser.preferences exists before spreading
-        const existingPreferences = currentUser.preferences || {};
+        const existingPreferences = currentUser.preferences || { notifications: {}, theme: 'light' };
         await updateUserPreferences(currentUser.uid, { 
             ...existingPreferences, 
             notifications: preferencesToSave 
         });
         toast({ title: "Ajustes Guardados", description: "Tus preferencias de notificación han sido actualizadas." });
     } catch (error: any) {
-        console.error("Error saving notification settings: ", error);
         toast({ variant: "destructive", title: "Error", description: `No se pudo guardar: ${error.message}` });
     } finally {
         setIsSaving(false);
     }
   };
 
-  const markAsRead = (id: string) => {
-    setNotifications(prev =>
-      prev.map(notif =>
-        notif.id === id ? { ...notif, read: true } : notif
-      )
-    );
-     toast({ title: "Notificación Leída", description: "Has marcado una notificación como leída." });
+  const handleMarkAsRead = async (id: string) => {
+    if (!currentUser) return;
+    try {
+      await markUserNotificationAsRead(currentUser.uid, id);
+      // Optimistic update locally, or rely on onSnapshot to refresh
+      setNotifications(prev =>
+        prev.map(notif =>
+          notif.id === id ? { ...notif, read: true } : notif
+        )
+      );
+      toast({ title: "Notificación Leída", description: "Has marcado una notificación como leída." });
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Error", description: `No se pudo marcar como leída: ${error.message}` });
+    }
   };
   
-  const clearAllNotifications = () => {
+  const clearAllNotifications = async () => {
+    // Note: True "clear all" would involve deleting from Firestore.
+    // For now, this will just clear the local state for demo purposes.
+    // A real implementation would need a batch delete operation on Firestore.
     setNotifications([]);
-    toast({ title: "Notificaciones Borradas", description: "Todas las notificaciones han sido eliminadas (vista local)." });
+    toast({ title: "Notificaciones Borradas (Vista Local)", description: "La eliminación real requeriría una función de backend." });
   };
   
-  const getCategoryColor = (category: NotificationItem['category']) => {
+  const getCategoryColor = (category: UserAppNotification['category']) => {
     switch(category) {
         case 'Recordatorio': return 'border-blue-500 bg-blue-500/10';
         case 'Motivación': return 'border-purple-500 bg-purple-500/10';
         case 'Autocuidado': return 'border-pink-500 bg-pink-500/10';
         case 'Consejo': return 'border-green-500 bg-green-500/10';
+        case 'Logro': return 'border-yellow-500 bg-yellow-500/10';
         default: return 'border-border bg-muted/10'; 
     }
   };
@@ -161,6 +153,12 @@ export default function NotificationsPage() {
   const getIconColorClass = (read: boolean) => {
     return read ? 'text-muted-foreground' : 'text-highlight-purple';
   };
+
+  const RenderNotificationIcon = ({ iconName, read }: { iconName?: keyof typeof LucideIcons, read: boolean }) => {
+    const ResolvedIcon = iconName ? LucideIcons[iconName] as React.ElementType : Bell;
+    return <ResolvedIcon className={`h-6 w-6 mt-1 ${getIconColorClass(read)}`} />;
+  };
+
 
   if (authLoading || isLoadingSettings) {
     return <div className="flex justify-center items-center h-screen"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>;
@@ -212,7 +210,7 @@ export default function NotificationsPage() {
                 {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4"/>}
                 Guardar Ajustes
             </Button>
-            <p className="text-xs text-muted-foreground">Nota: Las notificaciones push requieren configuración adicional. Estos ajustes controlan las alertas conceptuales y futuras notificaciones push.</p>
+            <p className="text-xs text-muted-foreground">Nota: Las notificaciones push reales requieren configuración de servidor (Cloud Functions). Estos ajustes controlan las preferencias para futuras implementaciones.</p>
           </CardFooter>
         </Card>
 
@@ -222,30 +220,32 @@ export default function NotificationsPage() {
                 <CardTitle className="text-xl">Tus Mensajes Recientes</CardTitle>
                 {notifications.length > 0 && (
                     <Button variant="outline" size="sm" onClick={clearAllNotifications} className="hover:bg-destructive/10 hover:text-destructive">
-                        <Trash2 className="mr-2 h-4 w-4" /> Borrar Todas
+                        <Trash2 className="mr-2 h-4 w-4" /> Borrar Todas (Local)
                     </Button>
                 )}
             </div>
-            <CardDescription>Tus últimas actualizaciones e inspiraciones de MovaZen (vista local de ejemplo).</CardDescription>
+            <CardDescription>Tus últimas actualizaciones e inspiraciones de MovaZen.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3 max-h-[500px] overflow-y-auto p-4">
-            {notifications.length > 0 ? (
+            {isLoadingNotifications ? (
+                <div className="flex justify-center items-center h-32"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>
+            ) : notifications.length > 0 ? (
               notifications.map(notif => (
                 <div
                   key={notif.id}
                   className={`p-4 rounded-lg border-l-4 ${notif.read ? 'border-border bg-card-foreground/5 opacity-70' : getCategoryColor(notif.category)}`}
                 >
                   <div className="flex items-start gap-3">
-                    {notif.icon && <notif.icon className={`h-6 w-6 mt-1 ${getIconColorClass(notif.read)}`} />}
+                    <RenderNotificationIcon iconName={notif.icon || iconMap[notif.category]} read={notif.read} />
                     <div className="flex-grow">
                       <h4 className={`font-semibold ${notif.read ? 'text-muted-foreground' : 'text-foreground'}`}>{notif.title}</h4>
                       <p className={`text-sm ${notif.read ? 'text-muted-foreground/80' : 'text-foreground/90'}`}>{notif.message}</p>
                        <p className={`text-xs mt-1 ${notif.read ? 'text-muted-foreground/60' : 'text-foreground/70'}`}>
-                        {notif.timestamp.toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'})} - {notif.timestamp.toLocaleDateString('es-ES')}
+                        {notif.createdAt.toDate().toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'})} - {notif.createdAt.toDate().toLocaleDateString('es-ES')}
                       </p>
                     </div>
                     {!notif.read && (
-                      <Button variant="ghost" size="sm" onClick={() => markAsRead(notif.id)} className="text-xs self-start">
+                      <Button variant="ghost" size="sm" onClick={() => handleMarkAsRead(notif.id)} className="text-xs self-start">
                         Marcar leída
                       </Button>
                     )}

@@ -104,3 +104,16 @@ export interface UserProfile {
         favoriteAffirmations?: string[]; // Array of SavedAffirmation IDs
     };
 }
+
+// For app-generated notifications displayed to the user
+export interface UserAppNotification {
+  id: string; // Firestore document ID
+  userId: string;
+  title: string;
+  message: string;
+  category: 'Recordatorio' | 'Motivación' | 'Autocuidado' | 'Consejo' | 'Logro' | 'General';
+  icon?: keyof typeof import('lucide-react'); // Optional: name of a Lucide icon
+  linkTo?: string; // Optional: path to navigate to when clicked
+  read: boolean;
+  createdAt: Timestamp; // Firestore Timestamp
+}

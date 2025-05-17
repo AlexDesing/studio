@@ -112,7 +112,7 @@ export default function AffirmationsPage() {
         });
       }
     } catch (e) {
-      console.error(e);
+      console.error("Error al generar afirmación:", e);
       const errorMessage = e instanceof Error ? e.message : 'Ocurrió un error inesperado.';
       setError(`Error al generar afirmación: ${errorMessage}`);
        toast({
@@ -137,7 +137,6 @@ export default function AffirmationsPage() {
       });
       toast({title: "Afirmación Guardada", description: "Tu afirmación ha sido guardada en tu colección."});
     } catch (error: any) {
-      console.error("Error saving affirmation: ", error);
       toast({title: "Error al Guardar", description: `No se pudo guardar la afirmación: ${error.message}`, variant: "destructive"});
     }
   };
@@ -188,7 +187,6 @@ export default function AffirmationsPage() {
         }
         setIsVisionBoardDialogOpen(false);
     } catch (error: any) {
-        console.error("Error saving vision board item: ", error);
         toast({variant: "destructive", title: "Error al Guardar", description: error.message});
     }
   };
@@ -210,7 +208,6 @@ export default function AffirmationsPage() {
              setCurrentVisionPageIndex(Math.max(0, currentVisionPageIndex - 1));
         }
     } catch (error: any) {
-        console.error("Error deleting vision board item: ", error);
         toast({variant: "destructive", title: "Error al Eliminar", description: error.message});
     } finally {
         setIsDeleteVBConfirmOpen(false);
@@ -322,7 +319,7 @@ export default function AffirmationsPage() {
                   <CardHeader>
                     <CardTitle className="text-primary-foreground flex items-center text-xl justify-between">
                       <div className="flex items-center">
-                        <Heart className="mr-2 h-6 w-6 text-primary" /> Tu Afirmación Personalizada:
+                        <Heart className="mr-2 h-6 w-6 text-highlight-purple" /> Tu Afirmación Personalizada:
                       </div>
                       <Button variant="outline" size="sm" onClick={handleSaveGeneratedAffirmation} title="Guardar esta afirmación">
                         <Bookmark className="h-4 w-4"/>

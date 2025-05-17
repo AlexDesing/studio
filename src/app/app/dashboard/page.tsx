@@ -50,18 +50,15 @@ export default function DashboardPage() {
 
       fetchRecommendations(); 
 
-      // Consider a more robust loading state management if multiple streams are critical
-      // For now, assume recommendations are secondary and don't block initial data display.
       Promise.all([
-        new Promise(resolve => { // Dummy promise for tasks to resolve loading
+        new Promise<void>(resolve => { 
           const unsub = onTasksSnapshot(currentUser.uid, today, () => {
-            resolve(true);
-            // We don't want to call unsub here as it's managed by unsubscribeTasks
+            resolve();
           });
         }),
-         new Promise(resolve => { // Dummy promise for routines
+         new Promise<void>(resolve => { 
           const unsubR = onRoutinesSnapshot(currentUser.uid, () => {
-            resolve(true);
+            resolve();
           });
         })
       ]).finally(() => setIsLoadingData(false));
@@ -77,6 +74,7 @@ export default function DashboardPage() {
         setRecommendations([]);
         setIsLoadingData(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser, authLoading]);
   
   const fetchRecommendations = async () => {
@@ -117,7 +115,6 @@ export default function DashboardPage() {
   const totalTasksToday = tasks.length;
   const taskProgress = totalTasksToday > 0 ? (completedTasksToday / totalTasksToday) * 100 : 0;
 
-  // Mock data for other charts/metrics - replace with actual data logic
   const weeklyHabitProgress = 0; 
   const wellbeingScore = 0; 
 
@@ -133,7 +130,7 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Task Progress Today */}
-        <Card className="lg:col-span-1 shadow-lg">
+        <Card className="lg:col-span-1 shadow-lg min-h-[180px]">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-lg font-medium">Progreso de Hoy</CardTitle>
             <ClipboardList className="h-5 w-5 text-muted-foreground" />
@@ -149,7 +146,7 @@ export default function DashboardPage() {
         </Card>
 
         {/* Habit Tracking Placeholder */}
-        <Card className="shadow-lg">
+        <Card className="shadow-lg min-h-[180px]">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-lg font-medium">Seguimiento de Hábitos</CardTitle>
             <CheckCircle className="h-5 w-5 text-muted-foreground" />
@@ -164,7 +161,7 @@ export default function DashboardPage() {
         </Card>
 
         {/* Wellbeing Score Placeholder */}
-        <Card className="shadow-lg">
+        <Card className="shadow-lg min-h-[180px]">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-lg font-medium">Nivel de Bienestar</CardTitle>
             <Smile className="h-5 w-5 text-muted-foreground" />
@@ -179,7 +176,7 @@ export default function DashboardPage() {
         </Card>
 
         {/* AI Recommendations */}
-        <Card className="md:col-span-2 lg:col-span-3 shadow-lg">
+        <Card className="md:col-span-2 lg:col-span-3 shadow-lg min-h-[250px]">
           <CardHeader>
             <div className="flex items-center space-x-3">
                 <Lightbulb className="h-7 w-7 text-primary" />
@@ -187,7 +184,7 @@ export default function DashboardPage() {
             </div>
             <CardDescription>Sugerencias personalizadas por IA para potenciar tu día.</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="min-h-[120px]">
             {isLoadingRecs ? (
               <div className="flex items-center justify-center h-24">
                 <Zap className="h-6 w-6 animate-ping text-primary" />
@@ -215,7 +212,7 @@ export default function DashboardPage() {
         </Card>
 
         {/* Achievements/Badges */}
-        <Card className="md:col-span-2 lg:col-span-3 shadow-lg">
+        <Card className="md:col-span-2 lg:col-span-3 shadow-lg min-h-[200px]">
           <CardHeader>
              <div className="flex items-center space-x-3">
                 <Award className="h-7 w-7 text-yellow-500" />
